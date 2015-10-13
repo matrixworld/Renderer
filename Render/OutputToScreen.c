@@ -38,6 +38,8 @@ void DrawLine_Algo1(int x0, int y0, int x1, int y1)
 {
 	//直线斜率是否大于1
 	BOOL steep = ABS(y1 - y0) > ABS(x1 - x0);
+	//如果大于1
+	//将直线沿 y=x 翻转输出
 	if (steep)
 	{
 		swap(&x0, &y0);
@@ -70,7 +72,7 @@ void DrawLine_Algo1(int x0, int y0, int x1, int y1)
 			buffer[i* RENDER_X + painter_y] = RGB(0, 0, 0);
 		}
 		err += derr;
-		if (err >= 0.5 || err <= -0.5) {
+		if (err >= 0.5) {
 			painter_y += ystep;
 			err -= 1.0;
 		}
