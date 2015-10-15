@@ -7,12 +7,21 @@
 //窗口大小为600x600
 //只防止被标题栏重叠
 //偏移一段
-#define OFFSET(x) ((x) + 35)
+#define OFFSET(x) ((x) + 20)
 //求绝对值Absolute
 #define ABS(x) (((x) >= 0)?(x):-(x))
 
-//记录渲染结果的缓存
-COLORREF buffer[RENDER_X*RENDER_Y] = { 0 };
+//全局变量
+//储存渲染结果的设备上下文
+HDC buffer_dc;
+HBITMAP bmp;
+
+//函数预先声明
+void DrawLine_Algo1(int,int,int,int);
+void DrawTriangle(int, int, int, int, int, int);
+void RenderToScreen();
+//////////////////////////////////////////////////////
+
 
 //交换数据
 void swap(int *a,int *b)
@@ -22,17 +31,12 @@ void swap(int *a,int *b)
 	*b = tmp;
 }
 
-void InitBuffer()
+void DrawTriangle(int x0,int y0,int x1,int y1,int x2,int y2)
 {
-	for (int lop = 0; lop < RENDER_X; lop++)
-	{
-		for (int lop2 = 0; lop2 < RENDER_Y; lop2++)
-		{
-			buffer[lop*RENDER_X + lop2] = RGB(255, 255, 255);
-		}
-	}
+	DrawLine_Algo1(x0, y0, x1, y1);
+	DrawLine_Algo1(x1, y1, x2, y2);
+	DrawLine_Algo1(x2, y2, x0, y0);
 }
-
 //布雷森汉姆直线算法
 void DrawLine_Algo1(int x0, int y0, int x1, int y1)
 {
@@ -65,11 +69,11 @@ void DrawLine_Algo1(int x0, int y0, int x1, int y1)
 	for (int i = x0; i <= x1; i++) {
 		if (steep)
 		{
-			buffer[painter_y* RENDER_X + i] = RGB(0, 0, 0);
+			SetPixel(buffer_dc, painter_y, i, RGB(0, 0, 0));
 		}
 		else
 		{
-			buffer[i* RENDER_X + painter_y] = RGB(0, 0, 0);
+			SetPixel(buffer_dc, i, painter_y, RGB(0, 0, 0));
 		}
 		err += derr;
 		if (err >= 0.5) {
@@ -79,45 +83,20 @@ void DrawLine_Algo1(int x0, int y0, int x1, int y1)
 	}
 }
 
-void RenderToScreen(PAINTSTRUCT *paint)
-{
-	int lop, lop2;
-	//画出外框
-	for (lop = -1; lop <= 512; lop++)
-	{
-		SetPixel(paint->hdc, OFFSET(lop), OFFSET(-1), RGB(255, 0, 0));
-		SetPixel(paint->hdc, OFFSET(lop), OFFSET(512), RGB(255, 0, 0));
-	}
-	for (lop = 0; lop <= 511; lop++)
-	{
-		SetPixel(paint->hdc, OFFSET(-1), OFFSET(lop), RGB(255, 0, 0));
-		SetPixel(paint->hdc, OFFSET(512), OFFSET(lop), RGB(255, 0, 0));
-	}
-	//画出缓存里的图案
-	for (lop = 0; lop < RENDER_X; lop++)
-	{
-		for (lop2 = 0; lop2 < RENDER_Y; lop2++)
-		{
-			SetPixel(paint->hdc, OFFSET(lop), OFFSET(lop2), buffer[lop*RENDER_X + lop2]);
-		}
-	}
-}
-
 LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-	PAINTSTRUCT paint;
-
+	RECT rect = { 0, 0, 512, 512 };
 	switch (Msg)
 	{
-	case WM_PAINT:
-		BeginPaint(hWnd, &paint);
-		SelectObject(paint.hdc, GetStockObject(DC_BRUSH));
-
-		RenderToScreen(&paint);
-
-		EndPaint(hWnd, &paint);
+	case WM_CREATE:
+		bmp = CreateCompatibleBitmap(GetDC(hWnd), 512, 512);
+		buffer_dc = CreateCompatibleDC(GetDC(hWnd));
+		SelectObject(buffer_dc, bmp);
+		FillRect(buffer_dc, &rect, CreateSolidBrush(RGB(255,255,255)));
 		break;
-
+	case WM_PAINT:
+		BitBlt(GetDC(hWnd), 0, 0, 512, 512, buffer_dc, 0, 0, SRCCOPY);
+		break;
 	case WM_KEYDOWN:
 		if (wParam == VK_ESCAPE) {
 			PostQuitMessage(0);
@@ -125,27 +104,14 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		//相应键盘F5按键
 		if (wParam == VK_F5)
 		{
-			//顺时针画出所有8个方向的直线
-			//Up
-			DrawLine_Algo1(256, 256, 256, 512);
-			//Up-Right
-			DrawLine_Algo1(256, 256, 512, 512);
-			//Right
-			DrawLine_Algo1(256, 256, 512, 256);
-			//Down-Right
-			DrawLine_Algo1(256, 256, 512, 0);
-			//Down
-			DrawLine_Algo1(256, 256, 256, 0);
-			//Down-Left
-			DrawLine_Algo1(256, 256, 0, 0);
-			//Left
-			DrawLine_Algo1(256, 256, 0, 256);
-			//Up-Left
-			DrawLine_Algo1(256, 256, 0, 512);
+			//重新用白色覆盖memory Device Contexts
+			FillRect(buffer_dc, &rect, CreateSolidBrush(RGB(255, 255, 255)));
+			//绘画
+			DrawTriangle(30, 45, 500, 200, 200, 450);
+			DrawLine_Algo1(0, 0, 511, 511);
 			
 			//强制重绘整个窗口
-			InvalidateRect(hWnd, NULL, TRUE);
-			UpdateWindow(hWnd);
+			BitBlt(GetDC(hWnd), 0, 0, 512, 512, buffer_dc, 0, 0, SRCCOPY);
 		}
 		break;
 	case WM_DESTROY:
@@ -159,8 +125,6 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int nShowCmd) 
 {
-	InitBuffer();
-
 	wchar_t Name[] = TEXT("Output");
 	WNDCLASSEX wnd = {0};
 	wnd.cbClsExtra = 0;
@@ -179,14 +143,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 	RegisterClassEx(&wnd);
 
 	HWND hWnd = CreateWindowEx(WS_EX_CLIENTEDGE, Name, TEXT("Render Output"), 
-		WS_OVERLAPPEDWINDOW, 100, 100, 600, 630, NULL, NULL, hInstance, NULL);
+		WS_OVERLAPPEDWINDOW, 0, 0, 600, 600, NULL, NULL, hInstance, NULL);
 
 	if (!hWnd) {
 		return 0;
 	}
 
 	ShowWindow(hWnd, nShowCmd);
-
 	UpdateWindow(hWnd);
 
 	MSG msg;
