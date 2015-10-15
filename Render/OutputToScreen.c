@@ -57,14 +57,12 @@ void DrawLine_Algo1(int x0, int y0, int x1, int y1)
 	int dx = x1 - x0;
 	int dy = ABS(y1 - y0);
 	
-	float err = 0;	
+	int err = dx / 2;
 
 	//y的增量
 	int ystep = (y0 < y1) ? 1 : -1;
 	//用于绘画的 y 数值
 	int painter_y = y0;
-	//err的增量
-	float derr = (float)dy / (float)dx;
 
 	for (int i = x0; i <= x1; i++) {
 		if (steep)
@@ -75,33 +73,37 @@ void DrawLine_Algo1(int x0, int y0, int x1, int y1)
 		{
 			SetPixel(buffer_dc, i, painter_y, RGB(0, 0, 0));
 		}
-		err += derr;
-		if (err >= 0.5) {
+		err -= dy;
+		if (err < 0) {
 			painter_y += ystep;
-			err -= 1.0;
+			err += dx;
 		}
 	}
 }
 
+//消息处理函数
 LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	RECT rect = { 0, 0, 512, 512 };
 	switch (Msg)
 	{
+	//窗口创建时
 	case WM_CREATE:
 		bmp = CreateCompatibleBitmap(GetDC(hWnd), 512, 512);
 		buffer_dc = CreateCompatibleDC(GetDC(hWnd));
 		SelectObject(buffer_dc, bmp);
 		FillRect(buffer_dc, &rect, CreateSolidBrush(RGB(255,255,255)));
 		break;
+	//窗口重绘时
 	case WM_PAINT:
 		BitBlt(GetDC(hWnd), 0, 0, 512, 512, buffer_dc, 0, 0, SRCCOPY);
 		break;
+	//有键被按下时
 	case WM_KEYDOWN:
 		if (wParam == VK_ESCAPE) {
 			PostQuitMessage(0);
 		}
-		//相应键盘F5按键
+		//响应键盘F5按键
 		if (wParam == VK_F5)
 		{
 			//重新用白色覆盖memory Device Contexts
@@ -115,6 +117,10 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	case WM_DESTROY:
+		//销毁
+		DeleteDC(buffer_dc);
+		DeleteObject(bmp);
+
 		PostQuitMessage(0);
 		break;
 	default:
