@@ -3,6 +3,7 @@
 
 //宏定义、结构体的定义
 #include "Renderer_Header.h"
+#include "MathLine.h"
 
 //精简版win32程序，不使用MFC相关东西
 #define WIN32_LEAN_AND_MEAN
@@ -13,16 +14,15 @@ HDC buffer_dc;
 HBITMAP bmp;
 //三角形顶点数组(不重复)
 //30, 45, 500, 200, 200, 450
-VERTEX2P TriangleVertexList[] = { { 30, 45 }, { 500, 200 }, { 200, 450 } };
+VECTOR2D TriangleVertexList[] = { { 0, 0 }, { 500, 200 }, { 200, 450 } };
 
 //三角形顶点索引数组
 //缠绕方向 顺时针
 int TriangleVertexIndex[] = { 0, 1, 2 };
 
+///////////////////////////////////////////////////////
 //函数预先声明
-void DrawLine_Algo1(int,int,int,int);
-void DrawTriangle(int *);
-void RenderToScreen();
+void DrawLine_Algo1(VECTOR2D,VECTOR2D);
 //////////////////////////////////////////////////////
 
 
@@ -36,45 +36,47 @@ void swap(int *a,int *b)
 
 void DrawTriangle(int *VertexIndex)
 {
-	DrawLine_Algo1(TriangleVertexList[0].x, TriangleVertexList[0].y, TriangleVertexList[1].x, TriangleVertexList[1].y);
-	DrawLine_Algo1(TriangleVertexList[1].x, TriangleVertexList[1].y, TriangleVertexList[2].x, TriangleVertexList[2].y);
-	DrawLine_Algo1(TriangleVertexList[2].x, TriangleVertexList[2].y, TriangleVertexList[0].x, TriangleVertexList[0].y);
+	DrawLine_Algo1(TriangleVertexList[0], TriangleVertexList[1]);
+	DrawLine_Algo1(TriangleVertexList[1], TriangleVertexList[2]);
+	DrawLine_Algo1(TriangleVertexList[2], TriangleVertexList[0]);
 }
+
 //布雷森汉姆直线算法
-void DrawLine_Algo1(int x0, int y0, int x1, int y1)
+void DrawLine_Algo1(VECTOR2D p0, VECTOR2D p1)
 {
+	if (!LiangBarskyLineClipping(&p0, &p1)) { return; }
 	//直线斜率是否大于1
-	BOOL steep = ABS(y1 - y0) > ABS(x1 - x0);
+	BOOL steep = ABS(p1.y - p0.y) > ABS(p1.x - p0.x);
 	//如果大于1
 	//将直线沿 y=x 翻转输出
 	if (steep)
 	{
-		swap(&x0, &y0);
-		swap(&x1, &y1);
+		swap(&p0.x, &p0.y);
+		swap(&p1.x, &p1.y);
 	}
-	if (x0 > x1)
+	if (p0.x > p1.x)
 	{
-		swap(&x0, &x1);
-		swap(&y0, &y1);
+		swap(&p0.x, &p1.x);
+		swap(&p0.y, &p1.y);
 	}
-	int dx = x1 - x0;
-	int dy = ABS(y1 - y0);
-	
+	int dx = p1.x - p0.x;
+	int dy = ABS(p1.y - p0.y);
+
 	int err = dx / 2;
 
 	//y的增量
-	int ystep = (y0 < y1) ? 1 : -1;
+	int ystep = (p0.y < p1.y) ? 1 : -1;
 	//用于绘画的 y 数值
-	int painter_y = y0;
+	int painter_y = p0.y;
 
-	for (int i = x0; i <= x1; i++) {
+	for (int i = p0.x; i <= p1.x; i++) {
 		if (steep)
 		{
-			SetPixel(buffer_dc, painter_y, i, RGB(0, 0, 0));
+			SetPixel(buffer_dc, painter_y, RENDER_Y - 1 - i, RGB(0, 0, 0));
 		}
 		else
 		{
-			SetPixel(buffer_dc, i, painter_y, RGB(0, 0, 0));
+			SetPixel(buffer_dc, i, RENDER_Y - 1 - painter_y, RGB(0, 0, 0));
 		}
 		err -= dy;
 		if (err < 0) {
@@ -87,19 +89,20 @@ void DrawLine_Algo1(int x0, int y0, int x1, int y1)
 //消息处理函数
 LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-	RECT rect = { 0, 0, 512, 512 };
+	RECT rect = { 0, 0, RENDER_X - 1, RENDER_Y - 1 };
 	switch (Msg)
 	{
 	//窗口创建时
 	case WM_CREATE:
-		bmp = CreateCompatibleBitmap(GetDC(hWnd), 512, 512);
+		bmp = CreateCompatibleBitmap(GetDC(hWnd),RENDER_X, RENDER_Y);
 		buffer_dc = CreateCompatibleDC(GetDC(hWnd));
 		SelectObject(buffer_dc, bmp);
+
 		FillRect(buffer_dc, &rect, CreateSolidBrush(RGB(255,255,255)));
 		break;
 	//窗口重绘时
 	case WM_PAINT:
-		BitBlt(GetDC(hWnd), 0, 0, 512, 512, buffer_dc, 0, 0, SRCCOPY);
+		BitBlt(GetDC(hWnd), 0, 0, RENDER_X - 1, RENDER_Y - 1, buffer_dc, 0, 0, SRCCOPY);
 		break;
 	//有键被按下时
 	case WM_KEYDOWN:
@@ -113,10 +116,8 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 			FillRect(buffer_dc, &rect, CreateSolidBrush(RGB(255, 255, 255)));
 			//绘画
 			DrawTriangle(TriangleVertexIndex);
-			DrawLine_Algo1(0, 0, 511, 511);
-			
 			//强制重绘整个窗口
-			BitBlt(GetDC(hWnd), 0, 0, 512, 512, buffer_dc, 0, 0, SRCCOPY);
+			BitBlt(GetDC(hWnd), 0, 0, RENDER_X - 1, RENDER_Y - 1, buffer_dc, 0, 0, SRCCOPY);
 		}
 		break;
 	case WM_DESTROY:
@@ -152,7 +153,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 	RegisterClassEx(&wnd);
 
 	HWND hWnd = CreateWindowEx(WS_EX_CLIENTEDGE, Name, TEXT("Render Output"), 
-		WS_OVERLAPPEDWINDOW, 0, 0, 600, 600, NULL, NULL, hInstance, NULL);
+		WS_OVERLAPPEDWINDOW, 0, 0, WINDOW_X, WINDOW_Y, NULL, NULL, hInstance, NULL);
 
 	if (!hWnd) {
 		return 0;
