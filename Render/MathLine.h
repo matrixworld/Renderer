@@ -5,6 +5,6 @@
 
 //返回值为0不绘画
 //返回值为1就画线
-int LiangBarskyLineClipping(VECTOR2D *, VECTOR2D *);
+int LiangBarskyLineClipping(FLOAT2D *, FLOAT2D *);
 
 #endif

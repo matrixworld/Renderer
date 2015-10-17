@@ -20,9 +20,9 @@
 #define ABS(x) (((x) >= 0)?(x):-(x))
 
 //二维平面内的顶点结构体
-typedef struct _VECTOR
+typedef struct _FLOAT2D
 {
 	int x, y;
-}VECTOR2D;
+}FLOAT2D;
 
 #endif

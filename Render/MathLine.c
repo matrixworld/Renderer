@@ -1,14 +1,14 @@
 #include "MathLine.h"
 
-int LiangBarskyLineClipping(VECTOR2D *p0, VECTOR2D *p1)
+int LiangBarskyLineClipping(FLOAT2D *p0, FLOAT2D *p1)
 {
-	double t0 = 0.0, t1 = 1.0;
+	float t0 = 0.0, t1 = 1.0;
 	//规定剪裁的边界
-	double edgeLeft = 0.0, edgeRight = (double)RENDER_X, edgeTop = (double)RENDER_Y, edgeBottom = 0.0;
-	double x0 = (double)p0->x, y0 = (double)p0->y, x1 = (double)p1->x, y1 = (double)p1->y;
-	double dx = x1 - x0;
-	double dy = y1 - y0;
-	double p, q, r;
+	float edgeLeft = 0.0, edgeRight = (float)RENDER_X, edgeTop = (float)RENDER_Y, edgeBottom = 0.0;
+	float x0 = (float)p0->x, y0 = (float)p0->y, x1 = (float)p1->x, y1 = (float)p1->y;
+	float dx = x1 - x0;
+	float dy = y1 - y0;
+	float p, q, r;
 
 	for (int edge = 0; edge < 4; edge++)
 	{

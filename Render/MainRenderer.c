@@ -14,7 +14,7 @@ HDC buffer_dc;
 HBITMAP bmp;
 //三角形顶点数组(不重复)
 //30, 45, 500, 200, 200, 450
-VECTOR2D TriangleVertexList[] = { { 0, 0 }, { 500, 200 }, { 200, 450 } };
+FLOAT2D TriangleVertexList[] = { { 30, 45 }, { 500, 200 }, { 200, 450 } };
 
 //三角形顶点索引数组
 //缠绕方向 顺时针
@@ -22,7 +22,7 @@ int TriangleVertexIndex[] = { 0, 1, 2 };
 
 ///////////////////////////////////////////////////////
 //函数预先声明
-void DrawLine_Algo1(VECTOR2D,VECTOR2D);
+void DrawLine_Algo1(FLOAT2D,FLOAT2D);
 //////////////////////////////////////////////////////
 
 
@@ -42,7 +42,7 @@ void DrawTriangle(int *VertexIndex)
 }
 
 //布雷森汉姆直线算法
-void DrawLine_Algo1(VECTOR2D p0, VECTOR2D p1)
+void DrawLine_Algo1(FLOAT2D p0, FLOAT2D p1)
 {
 	if (!LiangBarskyLineClipping(&p0, &p1)) { return; }
 	//直线斜率是否大于1

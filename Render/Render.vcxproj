@@ -14,6 +14,7 @@
     <ProjectGuid>{94DC541E-4514-463A-81D1-6B5AAA73B014}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Render</RootNamespace>
+    <ProjectName>Renderer_c</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -78,7 +79,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="OutputToScreen.c" />
+    <ClCompile Include="MainRenderer.c" />
+    <ClCompile Include="MathLine.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MathLine.h" />
+    <ClInclude Include="Renderer_Header.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
