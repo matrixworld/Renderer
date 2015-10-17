@@ -6,5 +6,4 @@ How to use:
 Pull And Compile And Run
 Then Press F5!
 
-This will be a tough road,
-Anyone help me?
+I dont know what take me so long to make a progess,I DONT KNOW!!!!!!!!
