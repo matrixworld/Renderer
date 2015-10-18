@@ -80,11 +80,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="MainRenderer.c" />
-    <ClCompile Include="MathLine.c" />
+    <ClCompile Include="MagicMath.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MathLine.h" />
-    <ClInclude Include="Renderer_Header.h" />
+    <ClInclude Include="MagicMath.h" />
+    <ClInclude Include="Definitions_Header.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

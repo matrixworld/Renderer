@@ -1,14 +1,23 @@
+////////////
+//系统头文件//
+////////////
+
 #include <Windows.h>
 #include <windef.h>
-
-//宏定义、结构体的定义
-#include "Renderer_Header.h"
-#include "MathLine.h"
-
 //精简版win32程序，不使用MFC相关东西
 #define WIN32_LEAN_AND_MEAN
 
-//全局变量
+//////////////
+//自定义头文件//
+//////////////
+
+#include "Definitions_Header.h"
+#include "MagicMath.h"
+
+///////////
+//全局变量//
+//////////
+
 //储存渲染结果的设备上下文
 HDC buffer_dc;
 HBITMAP bmp;
@@ -20,8 +29,10 @@ FLOAT2D TriangleVertexList[] = { { 30, 45 }, { 500, 200 }, { 200, 450 } };
 //缠绕方向 顺时针
 int TriangleVertexIndex[] = { 0, 1, 2 };
 
-///////////////////////////////////////////////////////
-//函数预先声明
+//////////////
+//函数预先声明//
+//////////////
+
 void DrawLine_Algo1(FLOAT2D,FLOAT2D);
 //////////////////////////////////////////////////////
 
@@ -44,6 +55,7 @@ void DrawTriangle(int *VertexIndex)
 //布雷森汉姆直线算法
 void DrawLine_Algo1(FLOAT2D p0, FLOAT2D p1)
 {
+	//对直线进行剪裁
 	if (!LiangBarskyLineClipping(&p0, &p1)) { return; }
 	//直线斜率是否大于1
 	BOOL steep = ABS(p1.y - p0.y) > ABS(p1.x - p0.x);
@@ -72,11 +84,11 @@ void DrawLine_Algo1(FLOAT2D p0, FLOAT2D p1)
 	for (int i = p0.x; i <= p1.x; i++) {
 		if (steep)
 		{
-			SetPixel(buffer_dc, painter_y, RENDER_Y - 1 - i, RGB(0, 0, 0));
+			SetPixel(buffer_dc, painter_y, RENDER_Y - 1 - i, BLACKCOLOR);
 		}
 		else
 		{
-			SetPixel(buffer_dc, i, RENDER_Y - 1 - painter_y, RGB(0, 0, 0));
+			SetPixel(buffer_dc, i, RENDER_Y - 1 - painter_y, BLACKCOLOR);
 		}
 		err -= dy;
 		if (err < 0) {
@@ -98,7 +110,7 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		buffer_dc = CreateCompatibleDC(GetDC(hWnd));
 		SelectObject(buffer_dc, bmp);
 
-		FillRect(buffer_dc, &rect, CreateSolidBrush(RGB(255,255,255)));
+		FillRect(buffer_dc, &rect, CreateSolidBrush(BGCOLOR));
 		break;
 	//窗口重绘时
 	case WM_PAINT:
@@ -113,7 +125,7 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		if (wParam == VK_F5)
 		{
 			//重新用白色覆盖memory Device Contexts
-			FillRect(buffer_dc, &rect, CreateSolidBrush(RGB(255, 255, 255)));
+			FillRect(buffer_dc, &rect, CreateSolidBrush(BGCOLOR));
 			//绘画
 			DrawTriangle(TriangleVertexIndex);
 			//强制重绘整个窗口

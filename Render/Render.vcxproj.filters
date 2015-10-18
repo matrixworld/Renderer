@@ -18,15 +18,15 @@
     <ClCompile Include="MainRenderer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MathLine.c">
+    <ClCompile Include="MagicMath.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Renderer_Header.h">
+    <ClInclude Include="MagicMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MathLine.h">
+    <ClInclude Include="Definitions_Header.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
