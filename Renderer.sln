@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Renderer_c", "Render\Render.vcxproj", "{94DC541E-4514-463A-81D1-6B5AAA73B014}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Renderer", "Render\Render.vcxproj", "{94DC541E-4514-463A-81D1-6B5AAA73B014}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MathTest", "MathTest\MathTest.vcxproj", "{A172B334-061B-4325-9050-1EE8ED0A69A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{94DC541E-4514-463A-81D1-6B5AAA73B014}.Debug|Win32.Build.0 = Debug|Win32
 		{94DC541E-4514-463A-81D1-6B5AAA73B014}.Release|Win32.ActiveCfg = Release|Win32
 		{94DC541E-4514-463A-81D1-6B5AAA73B014}.Release|Win32.Build.0 = Release|Win32
+		{A172B334-061B-4325-9050-1EE8ED0A69A2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A172B334-061B-4325-9050-1EE8ED0A69A2}.Debug|Win32.Build.0 = Debug|Win32
+		{A172B334-061B-4325-9050-1EE8ED0A69A2}.Release|Win32.ActiveCfg = Release|Win32
+		{A172B334-061B-4325-9050-1EE8ED0A69A2}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

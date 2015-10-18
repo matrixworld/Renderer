@@ -23,7 +23,7 @@ HDC buffer_dc;
 HBITMAP bmp;
 //三角形顶点数组(不重复)
 //30, 45, 500, 200, 200, 450
-FLOAT2D TriangleVertexList[] = { { 30, 45 }, { 500, 200 }, { 200, 450 } };
+FLOAT2D TriangleVertexList[] = { { 30, 45 }, { 400, 200 }, { 200, 450 } };
 
 //三角形顶点索引数组
 //缠绕方向 顺时针
@@ -33,27 +33,27 @@ int TriangleVertexIndex[] = { 0, 1, 2 };
 //函数预先声明//
 //////////////
 
-void DrawLine_Algo1(FLOAT2D,FLOAT2D);
+void DrawLine_Algo01(FLOAT2D,FLOAT2D);
 //////////////////////////////////////////////////////
 
 
 //交换数据
-void swap(int *a,int *b)
+void swap(float *a,float *b)
 {
-	int tmp = *a;
+	float tmp = *a;
 	*a = *b;
 	*b = tmp;
 }
 
 void DrawTriangle(int *VertexIndex)
 {
-	DrawLine_Algo1(TriangleVertexList[0], TriangleVertexList[1]);
-	DrawLine_Algo1(TriangleVertexList[1], TriangleVertexList[2]);
-	DrawLine_Algo1(TriangleVertexList[2], TriangleVertexList[0]);
+	DrawLine_Algo01(TriangleVertexList[VertexIndex[0]], TriangleVertexList[VertexIndex[1]]);
+	DrawLine_Algo01(TriangleVertexList[VertexIndex[1]], TriangleVertexList[VertexIndex[2]]);
+	DrawLine_Algo01(TriangleVertexList[VertexIndex[2]], TriangleVertexList[VertexIndex[0]]);
 }
 
 //布雷森汉姆直线算法
-void DrawLine_Algo1(FLOAT2D p0, FLOAT2D p1)
+void DrawLine_Algo01(FLOAT2D p0, FLOAT2D p1)
 {
 	//对直线进行剪裁
 	if (!LiangBarskyLineClipping(&p0, &p1)) { return; }
@@ -71,17 +71,17 @@ void DrawLine_Algo1(FLOAT2D p0, FLOAT2D p1)
 		swap(&p0.x, &p1.x);
 		swap(&p0.y, &p1.y);
 	}
-	int dx = p1.x - p0.x;
-	int dy = ABS(p1.y - p0.y);
+	int dx = (int)(p1.x - p0.x);
+	int dy = (int)ABS(p1.y - p0.y);
 
 	int err = dx / 2;
 
 	//y的增量
 	int ystep = (p0.y < p1.y) ? 1 : -1;
 	//用于绘画的 y 数值
-	int painter_y = p0.y;
+	int painter_y = (int)p0.y;
 
-	for (int i = p0.x; i <= p1.x; i++) {
+	for (int i = (int)p0.x; i <= p1.x; i++) {
 		if (steep)
 		{
 			SetPixel(buffer_dc, painter_y, RENDER_Y - 1 - i, BLACKCOLOR);
@@ -98,7 +98,7 @@ void DrawLine_Algo1(FLOAT2D p0, FLOAT2D p1)
 	}
 }
 
-//消息处理函数
+//程序的消息处理函数
 LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	RECT rect = { 0, 0, RENDER_X - 1, RENDER_Y - 1 };
@@ -128,6 +128,10 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 			FillRect(buffer_dc, &rect, CreateSolidBrush(BGCOLOR));
 			//绘画
 			DrawTriangle(TriangleVertexIndex);
+
+			//TODO
+			//三维空间画点
+
 			//强制重绘整个窗口
 			BitBlt(GetDC(hWnd), 0, 0, RENDER_X - 1, RENDER_Y - 1, buffer_dc, 0, 0, SRCCOPY);
 		}

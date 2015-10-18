@@ -44,7 +44,22 @@ z轴：向里
 //二维平面内的点
 typedef struct _FLOAT2D
 {
-	int x, y;
+	float x, y;
 }FLOAT2D;
+//三维空间内的店
+typedef struct _FLOAT3D
+{
+	float x, y, z;
+}FLOAT3D;
+//3x3矩阵
+typedef struct _MATRIX3
+{
+	float var[3][3];
+}MATRIX3;
+//4x4矩阵
+typedef struct _MATRIX4
+{
+	float var[4][4];
+}MATRIX4;
 
 #endif
