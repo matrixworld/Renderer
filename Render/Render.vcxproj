@@ -14,7 +14,7 @@
     <ProjectGuid>{94DC541E-4514-463A-81D1-6B5AAA73B014}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Render</RootNamespace>
-    <ProjectName>Renderer_c</ProjectName>
+    <ProjectName>Renderer</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
