@@ -21,12 +21,18 @@
     <ClCompile Include="MagicMath.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UsefulFunc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MagicMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Definitions_Header.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UsefulFunc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

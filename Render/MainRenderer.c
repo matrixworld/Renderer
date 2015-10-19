@@ -11,8 +11,8 @@
 //自定义头文件//
 //////////////
 
-#include "Definitions_Header.h"
 #include "MagicMath.h"
+#include "UsefulFunc.h"
 
 ///////////
 //全局变量//
@@ -21,36 +21,12 @@
 //储存渲染结果的设备上下文
 HDC buffer_dc;
 HBITMAP bmp;
-//三角形顶点数组(不重复)
-//30, 45, 500, 200, 200, 450
-FLOAT2D TriangleVertexList[] = { { 30, 45 }, { 400, 200 }, { 200, 450 } };
+//观察相机
+CAMERA camera;
 
-//三角形顶点索引数组
-//缠绕方向 顺时针
-int TriangleVertexIndex[] = { 0, 1, 2 };
-
-//////////////
-//函数预先声明//
-//////////////
-
-void DrawLine_Algo01(FLOAT2D,FLOAT2D);
-//////////////////////////////////////////////////////
-
-
-//交换数据
-void swap(float *a,float *b)
-{
-	float tmp = *a;
-	*a = *b;
-	*b = tmp;
-}
-
-void DrawTriangle(int *VertexIndex)
-{
-	DrawLine_Algo01(TriangleVertexList[VertexIndex[0]], TriangleVertexList[VertexIndex[1]]);
-	DrawLine_Algo01(TriangleVertexList[VertexIndex[1]], TriangleVertexList[VertexIndex[2]]);
-	DrawLine_Algo01(TriangleVertexList[VertexIndex[2]], TriangleVertexList[VertexIndex[0]]);
-}
+///////////
+//画线算法//
+///////////
 
 //布雷森汉姆直线算法
 void DrawLine_Algo01(FLOAT2D p0, FLOAT2D p1)
@@ -106,11 +82,14 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	{
 	//窗口创建时
 	case WM_CREATE:
+		//创建并初始化画布
 		bmp = CreateCompatibleBitmap(GetDC(hWnd),RENDER_X, RENDER_Y);
 		buffer_dc = CreateCompatibleDC(GetDC(hWnd));
 		SelectObject(buffer_dc, bmp);
-
 		FillRect(buffer_dc, &rect, CreateSolidBrush(BGCOLOR));
+
+		//初始化摄像机信息
+		InitCamera(&camera, 0, 0, -256, 0, 0, 1, 256, 1000, 90, 90);
 		break;
 	//窗口重绘时
 	case WM_PAINT:
@@ -126,8 +105,6 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		{
 			//重新用白色覆盖memory Device Contexts
 			FillRect(buffer_dc, &rect, CreateSolidBrush(BGCOLOR));
-			//绘画
-			DrawTriangle(TriangleVertexIndex);
 
 			//TODO
 			//三维空间画点
