@@ -79,8 +79,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="FunctionTest.c" />
     <ClCompile Include="MagicMath.c" />
+    <ClCompile Include="MainRenderer.c" />
     <ClCompile Include="UsefulFunc.c" />
   </ItemGroup>
   <ItemGroup>

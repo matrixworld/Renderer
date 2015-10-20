@@ -21,7 +21,7 @@
     <ClCompile Include="UsefulFunc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FunctionTest.c">
+    <ClCompile Include="MainRenderer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

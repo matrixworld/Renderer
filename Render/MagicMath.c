@@ -90,7 +90,7 @@ MATRIX4 MatrixMul4(MATRIX4 a, MATRIX4 b)
 	return matrix;
 }
 
-MATRIX4 Translation(float i, float j, float k)
+MATRIX4 Transition(FLOAT3D transition)
 {
 	MATRIX4 matrix_T = { 0.0f };
 
@@ -99,24 +99,36 @@ MATRIX4 Translation(float i, float j, float k)
 	matrix_T.var[2][2] = 1.0f;
 	matrix_T.var[3][3] = 1.0f;
 
-	matrix_T.var[3][0] = i;
-	matrix_T.var[3][1] = j;
-	matrix_T.var[3][2] = k;
+	matrix_T.var[3][0] = transition.x;
+	matrix_T.var[3][1] = transition.y;
+	matrix_T.var[3][2] = transition.z;
 
 	return matrix_T;
 }
 
-MATRIX4 Rotation(char axis, float degree)
+MATRIX4 Rotation(FLOAT3D rotation)
 {
-	degree *= 0.01745;
-	float c = cosf(degree);
-	float s = sinf(degree);
+	return MatrixMul4(MatrixMul4(Rotation_SingleAxis('x', rotation.x), Rotation_SingleAxis('y', rotation.y)),
+		Rotation_SingleAxis('z', rotation.z));
+}
 
+MATRIX4 Rotation_SingleAxis(char axis, float degree)
+{
 	MATRIX4 matrix_R = { 0.0f };
 	matrix_R.var[0][0] = 1.0f;
 	matrix_R.var[1][1] = 1.0f;
 	matrix_R.var[2][2] = 1.0f;
 	matrix_R.var[3][3] = 1.0f;
+
+	//如果没进行旋转
+	if (degree <= 0.001)
+	{
+		return matrix_R;
+	}
+
+	degree *= 0.01745f;
+	float c = cosf(degree);
+	float s = sinf(degree);
 
 	switch (axis)
 	{
@@ -158,9 +170,9 @@ MATRIX4 Scale(float multi)
 	return matrix_S;
 }
 
-MATRIX4 RS(MATRIX4 S, MATRIX4 R)
+MATRIX4 RST(MATRIX4 S, MATRIX4 R,MATRIX4 T)
 {
-	return MatrixMul4(S, R);
+	return MatrixMul4(MatrixMul4(S, R), T);
 }
 
 FLOAT3D VectorTransform(FLOAT3D src, MATRIX4 TRS)
@@ -175,5 +187,19 @@ FLOAT3D VectorTransform(FLOAT3D src, MATRIX4 TRS)
 
 void ObjectToWorldTransform(OBJECT *object)
 {
-	//TODO
+	MATRIX4 FinalTransformMatrix44;
+	FinalTransformMatrix44 = RST(Scale(1.0f), Rotation(object->rotation), Transition(object->position));
+
+	for (int lop = 0; lop < 3; lop++)
+	{
+		object->model.selfVertex[lop] = VectorTransform(object->model.selfVertex[lop], FinalTransformMatrix44);
+	}
+	//模型的中心被改变
+	object->position.x = 0.0f;
+	object->position.y = 0.0f;
+	object->position.z = 0.0f;
+
+	object->rotation.x = 0.0f;
+	object->rotation.y = 0.0f;
+	object->rotation.z = 0.0f;
 }

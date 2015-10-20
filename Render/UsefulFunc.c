@@ -10,13 +10,13 @@ void swap(float *a, float *b)
 void InitObject(OBJECT *object, MODEL model, float x, float y, float z, float i, float j, float k)
 {
 	object->model = model;
-	object->pos.x = x;
-	object->pos.y = y;
-	object->pos.z = z;
+	object->position.x = x;
+	object->position.y = y;
+	object->position.z = z;
 
-	object->heading.x = i;
-	object->heading.y = j;
-	object->heading.z = k;
+	object->rotation.x = i;
+	object->rotation.y = j;
+	object->rotation.z = k;
 }
 
 void InitCamera(CAMERA *c, float x, float y, float z, float i, float j, float k, float near, float far, int fovv, int fovh)

@@ -39,20 +39,24 @@ MATRIX3 MatrixMul3(MATRIX3, MATRIX3);
 MATRIX4 MatrixMul4(MATRIX4, MATRIX4);
 
 //生成平移矩阵
-MATRIX4 Translation(float i, float j, float k);
+MATRIX4 Transition(FLOAT3D);
 
-//生成旋转矩阵
-MATRIX4 Rotation(char axis, float degree);
+//生成最终的旋转矩阵
+MATRIX4 Rotation(FLOAT3D);
+
+//生成只绕一个轴的旋转矩阵
+MATRIX4 Rotation_SingleAxis(char axis, float degree);
 
 //生辰缩放矩阵
 MATRIX4 Scale(float multi);
 
 //整合RS操作
-MATRIX4 RS(MATRIX4 S, MATRIX4 R);
+MATRIX4 RST(MATRIX4 S, MATRIX4 R,MATRIX4 T);
 
 //最后将变换作用于点或向量
 FLOAT3D VectorTransform(FLOAT3D src, MATRIX4 Transform);
 
+//先缩放再旋转再平移
 void ObjectToWorldTransform(OBJECT *);
 
 #endif

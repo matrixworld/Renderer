@@ -14,6 +14,27 @@
 #include "MagicMath.h"
 #include "UsefulFunc.h"
 
+void FunctionTest()
+{
+	MODEL points;
+	points.selfVertex[0].x = 1.0f;
+	points.selfVertex[0].y = 0.0f;
+	points.selfVertex[0].z = 0.0f;
+
+	points.selfVertex[1].x = 0.0f;
+	points.selfVertex[1].y = 1.0f;
+	points.selfVertex[1].z = 0.0f;
+
+	points.selfVertex[2].x = 0.0f;
+	points.selfVertex[2].y = 0.0f;
+	points.selfVertex[2].z = 1.0f;
+
+	OBJECT triangularPoints;
+	InitObject(&triangularPoints, points, 0, 0, 0, 0, 0, 90);
+
+	ObjectToWorldTransform(&triangularPoints);
+}
+
 ///////////
 //全局变量//
 //////////
@@ -99,6 +120,11 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	case WM_KEYDOWN:
 		if (wParam == VK_ESCAPE) {
 			PostQuitMessage(0);
+		}
+		//测试用
+		if (wParam == VK_F4)
+		{
+			FunctionTest();
 		}
 		//响应键盘F5按键
 		if (wParam == VK_F5)
