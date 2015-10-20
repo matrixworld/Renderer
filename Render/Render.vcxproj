@@ -79,7 +79,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="MainRenderer.c" />
+    <ClCompile Include="FunctionTest.c" />
     <ClCompile Include="MagicMath.c" />
     <ClCompile Include="UsefulFunc.c" />
   </ItemGroup>

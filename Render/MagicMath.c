@@ -53,33 +53,127 @@ float DotProduct(FLOAT3D a, FLOAT3D b)
 	return a.x*b.x + a.y*b.y + a.z*b.z;
 }
 
-void MatrixMul3(MATRIX3 *output, MATRIX3 a, MATRIX3 b)
+MATRIX3 MatrixMul3(MATRIX3 a, MATRIX3 b)
 {
 	int lop, lop2;
+	MATRIX3 matrix = { 0.0f };
 	for (lop = 0; lop < 3; lop++)
 	{
 		for (lop2 = 0; lop2 < 3; lop2++)
 		{
-			output->var[lop][lop2] =
+			matrix.var[lop][lop2] =
 				(a.var[lop][0] * b.var[0][lop2]) +
 				(a.var[lop][1] * b.var[1][lop2]) +
 				(a.var[lop][2] * b.var[2][lop2]);
 		}
 	}
+
+	return matrix;
 }
 
-void MatrixMul4(MATRIX4 *output, MATRIX4 a, MATRIX4 b)
+MATRIX4 MatrixMul4(MATRIX4 a, MATRIX4 b)
 {
 	int lop, lop2;
+	MATRIX4 matrix = { 0.0f };
 	for (lop = 0; lop < 4; lop++)
 	{
 		for (lop2 = 0; lop2 < 4; lop2++)
 		{
-			output->var[lop][lop2] =
+			matrix.var[lop][lop2] =
 				(a.var[lop][0] * b.var[0][lop2]) +
 				(a.var[lop][1] * b.var[1][lop2]) +
 				(a.var[lop][2] * b.var[2][lop2]) +
 				(a.var[lop][3] * b.var[3][lop2]);
 		}
 	}
+
+	return matrix;
+}
+
+MATRIX4 Translation(float i, float j, float k)
+{
+	MATRIX4 matrix_T = { 0.0f };
+
+	matrix_T.var[0][0] = 1.0f;
+	matrix_T.var[1][1] = 1.0f;
+	matrix_T.var[2][2] = 1.0f;
+	matrix_T.var[3][3] = 1.0f;
+
+	matrix_T.var[3][0] = i;
+	matrix_T.var[3][1] = j;
+	matrix_T.var[3][2] = k;
+
+	return matrix_T;
+}
+
+MATRIX4 Rotation(char axis, float degree)
+{
+	degree *= 0.01745;
+	float c = cosf(degree);
+	float s = sinf(degree);
+
+	MATRIX4 matrix_R = { 0.0f };
+	matrix_R.var[0][0] = 1.0f;
+	matrix_R.var[1][1] = 1.0f;
+	matrix_R.var[2][2] = 1.0f;
+	matrix_R.var[3][3] = 1.0f;
+
+	switch (axis)
+	{
+	case 'x':
+	case 'X':
+		matrix_R.var[1][1] = c;
+		matrix_R.var[2][2] = c;
+		matrix_R.var[1][2] = s;
+		matrix_R.var[2][1] = -s;
+		return matrix_R;
+	case 'y':
+	case 'Y':
+		matrix_R.var[0][0] = c;
+		matrix_R.var[2][2] = c;
+		matrix_R.var[2][0] = s;
+		matrix_R.var[0][2] = -s;
+		return matrix_R;
+	case 'z':
+	case 'Z':
+		matrix_R.var[0][0] = c;
+		matrix_R.var[1][1] = c;
+		matrix_R.var[0][1] = s;
+		matrix_R.var[1][0] = -s;
+		return matrix_R;
+	}
+
+	//Should never reach here;
+	return matrix_R;
+}
+
+MATRIX4 Scale(float multi)
+{
+	MATRIX4 matrix_S = { 0.0f };
+	matrix_S.var[0][0] = multi;
+	matrix_S.var[1][1] = multi;
+	matrix_S.var[2][2] = multi;
+	matrix_S.var[3][3] = 1.0f;
+
+	return matrix_S;
+}
+
+MATRIX4 RS(MATRIX4 S, MATRIX4 R)
+{
+	return MatrixMul4(S, R);
+}
+
+FLOAT3D VectorTransform(FLOAT3D src, MATRIX4 TRS)
+{
+	FLOAT3D des = { 0.0f };
+	des.x = src.x*TRS.var[0][0] + src.y*TRS.var[1][0] + src.z*TRS.var[2][0] + TRS.var[3][0];
+	des.y = src.x*TRS.var[0][1] + src.y*TRS.var[1][1] + src.z*TRS.var[2][1] + TRS.var[3][1];
+	des.z = src.x*TRS.var[0][2] + src.y*TRS.var[1][2] + src.z*TRS.var[2][2] + TRS.var[3][2];
+
+	return des;
+}
+
+void ObjectToWorldTransform(OBJECT *object)
+{
+	//TODO
 }

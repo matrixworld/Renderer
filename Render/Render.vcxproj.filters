@@ -15,13 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MainRenderer.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MagicMath.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="UsefulFunc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FunctionTest.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

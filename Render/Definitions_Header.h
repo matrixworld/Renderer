@@ -11,15 +11,13 @@ y轴：向上
 z轴：向里
 
 物体：
-三角形顶点缠绕方向：顺时针 为正面向视点
+三角形顶点缠绕方向：逆时针 为正面向视点
 **********************************
 
 **********************************
 本文件包含
 点，矩阵的定义
 常用宏定义
-
-世界坐标
 
 物体坐标
 
@@ -68,6 +66,7 @@ typedef struct _FLOAT3D
 {
 	float x, y, z;
 }FLOAT3D;
+
 //3x3矩阵
 typedef struct _MATRIX3
 {
@@ -82,6 +81,24 @@ typedef struct _MATRIX4
 ///////////
 //物体定义//
 //////////
+
+//模型，仅记录模型上各个点对于模型空间的位矢
+typedef struct _MODEL
+{
+	FLOAT3D selfVertex[3];
+}MODEL;
+
+//模型在世界空间的结构体
+typedef struct _OBJECT
+{
+	MODEL model;
+	//模型在世界空间的位矢
+	FLOAT3D pos;
+	//模型本身坐标系的朝向
+	FLOAT3D heading;
+}OBJECT;
+
+
 
 //摄像机
 typedef struct _CAMERA

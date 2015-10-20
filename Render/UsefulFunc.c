@@ -7,6 +7,18 @@ void swap(float *a, float *b)
 	*b = tmp;
 }
 
+void InitObject(OBJECT *object, MODEL model, float x, float y, float z, float i, float j, float k)
+{
+	object->model = model;
+	object->pos.x = x;
+	object->pos.y = y;
+	object->pos.z = z;
+
+	object->heading.x = i;
+	object->heading.y = j;
+	object->heading.z = k;
+}
+
 void InitCamera(CAMERA *c, float x, float y, float z, float i, float j, float k, float near, float far, int fovv, int fovh)
 {
 	c->POS.x = x;
