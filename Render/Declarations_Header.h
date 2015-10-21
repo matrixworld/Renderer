@@ -1,5 +1,5 @@
-#ifndef RENDERER_DEFINITIONS_HEADER_H
-#define RENDERER_DEFINITIONS_HEADER_H
+#ifndef RENDERER_DECLARATIONS_HEADER_H
+#define RENDERER_DECLARATIONS_HEADER_H
 
 /********************************
 整个项目规则定义：

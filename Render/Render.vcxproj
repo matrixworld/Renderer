@@ -86,7 +86,7 @@
   <ItemGroup>
     <ClInclude Include="UsefulFunc.h" />
     <ClInclude Include="MagicMath.h" />
-    <ClInclude Include="Definitions_Header.h" />
+    <ClInclude Include="Declarations_Header.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

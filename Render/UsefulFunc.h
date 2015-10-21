@@ -1,7 +1,7 @@
 #ifndef RENDERER_USEFULFUNC_H_
 #define RENDERER_USEFULFUNC_H_
 
-#include "Definitions_Header.h"
+#include "Declarations_Header.h"
 
 //½»»»Êý¾Ý
 void swap(float *, float *);

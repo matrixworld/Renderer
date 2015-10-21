@@ -17,12 +17,12 @@
 void FunctionTest()
 {
 	//验证求逆矩阵是否正确
-	MATRIX4 matrixA =
-	{ 5,2,0,0,
+	MATRIX4 matrixA = { 5,2,0,0,
 	2,1,0,0,
 	0,0,8,3,
 	0,0,5,2 };
-	MATRIX4 matrixB, ans;
+
+	MATRIX4 matrixB = { 0 }, ans = { 0 };
 
 	matrixB = InvertMatrix4(matrixA);
 

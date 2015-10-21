@@ -233,33 +233,32 @@ MATRIX4 InvertMatrix4(MATRIX4 input)
 	Matrix4SetZero(&output);
 
 	//先算分母，再求倒
-	firstPart = (input.var[0][0] * input.var[1][1] * input.var[2][2] * input.var[3][3]);
-	firstPart += (input.var[0][1] * input.var[1][2] * input.var[2][3] * input.var[3][0]);
-	firstPart += (input.var[0][2] * input.var[1][3] * input.var[2][0] * input.var[3][1]);
-	firstPart += (input.var[0][3] * input.var[1][0] * input.var[2][1] * input.var[3][2]);
-	firstPart -= (input.var[0][3] * input.var[1][2] * input.var[2][1] * input.var[3][0]);
-	firstPart -= (input.var[0][2] * input.var[1][1] * input.var[2][0] * input.var[3][3]);
-	firstPart -= (input.var[0][1] * input.var[1][0] * input.var[2][3] * input.var[3][2]);
-	firstPart -= (input.var[0][0] * input.var[1][3] * input.var[2][2] * input.var[3][1]);
+	firstPart =
+		(input.var[0][0] * input.var[1][1] * input.var[2][2] * input.var[3][3]) +
+		(input.var[0][1] * input.var[1][2] * input.var[2][3] * input.var[3][0]) +
+		(input.var[0][2] * input.var[1][3] * input.var[2][0] * input.var[3][1]) +
+		(input.var[0][3] * input.var[1][0] * input.var[2][1] * input.var[3][2]) -
+		(input.var[0][3] * input.var[1][2] * input.var[2][1] * input.var[3][0]) -
+		(input.var[0][2] * input.var[1][1] * input.var[2][0] * input.var[3][3]) -
+		(input.var[0][1] * input.var[1][0] * input.var[2][3] * input.var[3][2]) -
+		(input.var[0][0] * input.var[1][3] * input.var[2][2] * input.var[3][1]);
 
 	//求倒
 	firstPart = 1 / firstPart;
 
-	//最里层的循环...
+	//最里层的循环
 	int x, y;
-	//用于标识行列式的x y...
+	//用于标识行列式的x y
 	int x_tmp, y_tmp;
 
 	for (int lop = 0; lop < 4; lop++)
 	{
 		for (int lop2 = 0; lop2 < 4; lop2++)
 		{
-
-			//每次开始为输出矩阵的元素求值
 			Matrix3SetZero(&tmp);
 			x_tmp = 0;
 			y_tmp = 0;
-
+			//为output矩阵的元素求值
 			for (x = 0; x < 4; x++)
 			{
 				y_tmp = 0;
@@ -285,7 +284,7 @@ MATRIX4 InvertMatrix4(MATRIX4 input)
 			{
 				output.var[lop2][lop] = (-1.0f)*output.var[lop2][lop];
 			}
-			//output.var[lop2][lop] *= firstPart;
+			output.var[lop2][lop] *= firstPart;
 		}
 	}
 

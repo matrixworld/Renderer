@@ -22,7 +22,7 @@
 #include <math.h>
 
 #include "UsefulFunc.h"
-#include "Definitions_Header.h"
+#include "Declarations_Header.h"
 
 //该函数将直线进行剪裁
 //返回值为0不绘画
