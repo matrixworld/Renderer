@@ -218,7 +218,17 @@ void ObjectToWorldTransform(OBJECT *object)
 void WorldToViewTransform(CAMERA *camera,OBJECT *object,MATRIX4 RST)
 {
 	//TODO
+	for (int lop = 0; lop < 3; lop++)
+	{
+		object->model.selfVertex[lop] = VectorTransform(object->model.selfVertex[lop], RST);
+	}
+	camera->POS.x = 0;
+	camera->POS.y = 0;
+	camera->POS.z = 0;
 
+	camera->rotation.x = 0;
+	camera->rotation.y = 0;
+	camera->rotation.z = 0;
 }
 
 //¼ÆËãÄæ¾ØÕó
@@ -284,7 +294,7 @@ MATRIX4 InvertMatrix4(MATRIX4 input)
 			{
 				output.var[lop2][lop] = (-1.0f)*output.var[lop2][lop];
 			}
-			output.var[lop2][lop] *= firstPart;
+			//output.var[lop2][lop] *= firstPart;
 		}
 	}
 
