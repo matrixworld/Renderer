@@ -99,9 +99,8 @@ typedef struct _CAMERA
 {
 	//摄像机在世界空间的坐标
 	FLOAT3D POS;
-	//摄像机在世界空间的朝向
-	//z轴为摄像机指向的轴
-	FLOAT3D HEADING;
+	//摄像机在世界空间的转动角度
+	FLOAT3D rotation;
 
 	//最近的距离，最远显示的距离
 	float NearZ, FarZ;
@@ -113,7 +112,10 @@ typedef struct _CAMERA
 
 //Recommended:
 //POS:0,0,-256
-//HEADING:0,0,1
+
+//rotation:
+//pitch yaw roll
+
 //NearZ:256
 //FarZ:1000
 //FOVV:90 (degree)

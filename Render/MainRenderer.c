@@ -16,6 +16,19 @@
 
 void FunctionTest()
 {
+	//验证求逆矩阵是否正确
+	MATRIX4 matrixA =
+	{ 5,2,0,0,
+	2,1,0,0,
+	0,0,8,3,
+	0,0,5,2 };
+	MATRIX4 matrixB, ans;
+
+	matrixB = InvertMatrix4(matrixA);
+
+	ans = MatrixMul4(matrixA, matrixB);
+
+	/*
 	MODEL points;
 	points.selfVertex[0].x = 1.0f;
 	points.selfVertex[0].y = 0.0f;
@@ -33,6 +46,12 @@ void FunctionTest()
 	InitObject(&triangularPoints, points, 0, 0, 0, 0, 0, 90);
 
 	ObjectToWorldTransform(&triangularPoints);
+
+	CAMERA camera;
+	InitCamera(&camera, 0, 0, 0, 0, 0, 0, 256, 1024, 90, 90);
+
+	WorldToViewTransform(&camera,);
+	*/
 }
 
 ///////////

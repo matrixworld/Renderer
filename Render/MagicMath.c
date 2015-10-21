@@ -53,6 +53,8 @@ float DotProduct(FLOAT3D a, FLOAT3D b)
 	return a.x*b.x + a.y*b.y + a.z*b.z;
 }
 
+//FLOAT3D CrossProduct()
+
 MATRIX3 MatrixMul3(MATRIX3 a, MATRIX3 b)
 {
 	int lop, lop2;
@@ -92,7 +94,9 @@ MATRIX4 MatrixMul4(MATRIX4 a, MATRIX4 b)
 
 MATRIX4 Transition(FLOAT3D transition)
 {
-	MATRIX4 matrix_T = { 0.0f };
+	MATRIX4 matrix_T;
+
+	Matrix4SetZero(&matrix_T);
 
 	matrix_T.var[0][0] = 1.0f;
 	matrix_T.var[1][1] = 1.0f;
@@ -115,6 +119,9 @@ MATRIX4 Rotation(FLOAT3D rotation)
 MATRIX4 Rotation_SingleAxis(char axis, float degree)
 {
 	MATRIX4 matrix_R = { 0.0f };
+
+	Matrix4SetZero(&matrix_R);
+
 	matrix_R.var[0][0] = 1.0f;
 	matrix_R.var[1][1] = 1.0f;
 	matrix_R.var[2][2] = 1.0f;
@@ -161,7 +168,9 @@ MATRIX4 Rotation_SingleAxis(char axis, float degree)
 
 MATRIX4 Scale(float multi)
 {
-	MATRIX4 matrix_S = { 0.0f };
+	MATRIX4 matrix_S;
+	Matrix4SetZero(&matrix_S);
+
 	matrix_S.var[0][0] = multi;
 	matrix_S.var[1][1] = multi;
 	matrix_S.var[2][2] = multi;
@@ -188,6 +197,8 @@ FLOAT3D VectorTransform(FLOAT3D src, MATRIX4 TRS)
 void ObjectToWorldTransform(OBJECT *object)
 {
 	MATRIX4 FinalTransformMatrix44;
+	Matrix4SetZero(&FinalTransformMatrix44);
+
 	FinalTransformMatrix44 = RST(Scale(1.0f), Rotation(object->rotation), Transition(object->position));
 
 	for (int lop = 0; lop < 3; lop++)
@@ -202,4 +213,81 @@ void ObjectToWorldTransform(OBJECT *object)
 	object->rotation.x = 0.0f;
 	object->rotation.y = 0.0f;
 	object->rotation.z = 0.0f;
+}
+
+void WorldToViewTransform(CAMERA *camera,OBJECT *object,MATRIX4 RST)
+{
+	//TODO
+
+}
+
+//计算逆矩阵
+//人蠢就是这么艰难
+MATRIX4 InvertMatrix4(MATRIX4 input)
+{
+	MATRIX4 output;
+	//用于储存每次的余子式
+	MATRIX3 tmp;
+	float firstPart = 0.0f;
+
+	Matrix4SetZero(&output);
+
+	//先算分母，再求倒
+	firstPart = (input.var[0][0] * input.var[1][1] * input.var[2][2] * input.var[3][3]);
+	firstPart += (input.var[0][1] * input.var[1][2] * input.var[2][3] * input.var[3][0]);
+	firstPart += (input.var[0][2] * input.var[1][3] * input.var[2][0] * input.var[3][1]);
+	firstPart += (input.var[0][3] * input.var[1][0] * input.var[2][1] * input.var[3][2]);
+	firstPart -= (input.var[0][3] * input.var[1][2] * input.var[2][1] * input.var[3][0]);
+	firstPart -= (input.var[0][2] * input.var[1][1] * input.var[2][0] * input.var[3][3]);
+	firstPart -= (input.var[0][1] * input.var[1][0] * input.var[2][3] * input.var[3][2]);
+	firstPart -= (input.var[0][0] * input.var[1][3] * input.var[2][2] * input.var[3][1]);
+
+	//求倒
+	firstPart = 1 / firstPart;
+
+	//最里层的循环...
+	int x, y;
+	//用于标识行列式的x y...
+	int x_tmp, y_tmp;
+
+	for (int lop = 0; lop < 4; lop++)
+	{
+		for (int lop2 = 0; lop2 < 4; lop2++)
+		{
+
+			//每次开始为输出矩阵的元素求值
+			Matrix3SetZero(&tmp);
+			x_tmp = 0;
+			y_tmp = 0;
+
+			for (x = 0; x < 4; x++)
+			{
+				y_tmp = 0;
+				if (x == lop)
+				{
+					continue;
+				}
+				for (y = 0; y < 4; y++)
+				{
+					if (y == lop2)
+					{
+						continue;
+					}
+					tmp.var[x_tmp][y_tmp++] = input.var[x][y];
+				}
+				x_tmp++;
+			}
+
+			output.var[lop2][lop] = Determinant(tmp);
+
+			//带-1
+			if ((lop + 1 + lop2 + 1) % 2)
+			{
+				output.var[lop2][lop] = (-1.0f)*output.var[lop2][lop];
+			}
+			//output.var[lop2][lop] *= firstPart;
+		}
+	}
+
+	return output;
 }

@@ -21,6 +21,7 @@
 
 #include <math.h>
 
+#include "UsefulFunc.h"
 #include "Definitions_Header.h"
 
 //该函数将直线进行剪裁
@@ -31,6 +32,10 @@ int LiangBarskyLineClipping(FLOAT2D *, FLOAT2D *);
 //三维空间的点积
 //将两个三维矢量算成浮点数并返回
 float DotProduct(FLOAT3D, FLOAT3D);
+
+//叉积
+//TODO
+
 
 //矩阵相乘
 //3x3阶矩阵相乘
@@ -57,6 +62,14 @@ MATRIX4 RST(MATRIX4 S, MATRIX4 R,MATRIX4 T);
 FLOAT3D VectorTransform(FLOAT3D src, MATRIX4 Transform);
 
 //先缩放再旋转再平移
+//将模型的点转到世界坐标
 void ObjectToWorldTransform(OBJECT *);
+
+//世界至摄像机变换
+void WorldToViewTransform(CAMERA *,OBJECT *,MATRIX4 RST);
+
+//求逆矩阵
+//This is not TRANSPOSE !
+MATRIX4 InvertMatrix4(MATRIX4);
 
 #endif
