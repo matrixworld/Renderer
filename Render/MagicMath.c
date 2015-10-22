@@ -197,24 +197,6 @@ void VectorTransform(FLOAT3D *src, MATRIX4 TRS)
 	src->z = newPOS.z;
 }
 
-void WorldToViewTransform(CAMERA *camera,OBJECT *object,MATRIX4 RST)
-{
-	for (int lop = 0; lop < 8; lop++)
-	{
-		VectorTransform(&object->model.selfVertex[lop], RST);
-	}
-	camera->POS.x = 0;
-	camera->POS.y = 0;
-	camera->POS.z = 0;
-
-	camera->rotation.x = 0;
-	camera->rotation.y = 0;
-	camera->rotation.z = 0;
-
-	//TODO
-	//物体的位置要不要更改？
-}
-
 //计算逆矩阵
 //人蠢就是这么艰难
 MATRIX4 InvertMatrix4(MATRIX4 input)

@@ -61,15 +61,13 @@ MATRIX4 RST(MATRIX4 S, MATRIX4 R,MATRIX4 T);
 //最后将变换作用于点或向量
 void VectorTransform(FLOAT3D *src, MATRIX4 Transform);
 
-//世界至摄像机变换
-void WorldToViewTransform(CAMERA *,OBJECT *,MATRIX4 RST);
-
 //求逆矩阵
 MATRIX4 InvertMatrix4(MATRIX4);
 
 //求世界至视口矩阵
 MATRIX4 GetWorldToViewMatrix4(CAMERA *);
 
+//将物体的点从物体空间转换到视口空间
 void SingleObjectToViewTransform(OBJECT*, MATRIX4);
 
 #endif

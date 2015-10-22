@@ -30,6 +30,7 @@ CAMERA camera;
 //源自立方体的8个顶点
 OBJECT CubePoints;
 
+//测试用
 void FunctionTest()
 {
 	InitCamera(&camera, 300, 300, -300, 35, -45, 0, 256, 1024, 90, 90);
