@@ -300,7 +300,7 @@ void SingleObjectToViewTransform(OBJECT* object, MATRIX4 WTV)
 
 	for (int lop = 0; lop < 8; lop++)
 	{
-		VectorTransform(&object->model.selfVertex[lop], ObjectToViewMatrix4);
+		VectorTransform(&object->model.vertex[lop], ObjectToViewMatrix4);
 	}
 
 	//模型的中心被改变

@@ -45,37 +45,37 @@ float Determinant(MATRIX3 input)
 
 void IniteModelToCube22(MODEL *input)
 {
-	input->selfVertex[0].x = 100.0f;
-	input->selfVertex[0].y = 100.0f;
-	input->selfVertex[0].z = 100.0f;
+	input->vertex[0].x = 100.0f;
+	input->vertex[0].y = 100.0f;
+	input->vertex[0].z = 100.0f;
 
-	input->selfVertex[1].x = -100.0f;
-	input->selfVertex[1].y = 100.0f;
-	input->selfVertex[1].z = 100.0f;
+	input->vertex[1].x = -100.0f;
+	input->vertex[1].y = 100.0f;
+	input->vertex[1].z = 100.0f;
 
-	input->selfVertex[2].x = -100.0f;
-	input->selfVertex[2].y = 100.0f;
-	input->selfVertex[2].z = -100.0f;
+	input->vertex[2].x = -100.0f;
+	input->vertex[2].y = 100.0f;
+	input->vertex[2].z = -100.0f;
 
-	input->selfVertex[3].x = 100.0f;
-	input->selfVertex[3].y = 100.0f;
-	input->selfVertex[3].z = -100.0f;
+	input->vertex[3].x = 100.0f;
+	input->vertex[3].y = 100.0f;
+	input->vertex[3].z = -100.0f;
 
-	input->selfVertex[4].x = 100.0f;
-	input->selfVertex[4].y = -100.0f;
-	input->selfVertex[4].z = 100.0f;
+	input->vertex[4].x = 100.0f;
+	input->vertex[4].y = -100.0f;
+	input->vertex[4].z = 100.0f;
 
-	input->selfVertex[5].x = -100.0f;
-	input->selfVertex[5].y = -100.0f;
-	input->selfVertex[5].z = 100.0f;
+	input->vertex[5].x = -100.0f;
+	input->vertex[5].y = -100.0f;
+	input->vertex[5].z = 100.0f;
 
-	input->selfVertex[6].x = -100.0f;
-	input->selfVertex[6].y = -100.0f;
-	input->selfVertex[6].z = -100.0f;
+	input->vertex[6].x = -100.0f;
+	input->vertex[6].y = -100.0f;
+	input->vertex[6].z = -100.0f;
 
-	input->selfVertex[7].x = 100.0f;
-	input->selfVertex[7].y = -100.0f;
-	input->selfVertex[7].z = -100.0f;
+	input->vertex[7].x = 100.0f;
+	input->vertex[7].y = -100.0f;
+	input->vertex[7].z = -100.0f;
 }
 
 void InitObject(OBJECT *object, MODEL model, float x, float y, float z, float i, float j, float k)

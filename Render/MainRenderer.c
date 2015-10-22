@@ -48,8 +48,8 @@ void FunctionTest()
 
 	for (int lop = 0; lop < 8; lop++)
 	{
-		CubePoints.model.selfVertex[lop].x += 300.0f;
-		CubePoints.model.selfVertex[lop].y += 300.0f;
+		CubePoints.model.vertex[lop].x += 300.0f;
+		CubePoints.model.vertex[lop].y += 300.0f;
 	}
 }
 
@@ -140,76 +140,76 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 			FunctionTest();
 
 			//画出线条
-			p0.x = CubePoints.model.selfVertex[0].x;
-			p0.y = CubePoints.model.selfVertex[0].y;
-			p1.x = CubePoints.model.selfVertex[1].x;
-			p1.y = CubePoints.model.selfVertex[1].y;
+			p0.x = CubePoints.model.vertex[0].x;
+			p0.y = CubePoints.model.vertex[0].y;
+			p1.x = CubePoints.model.vertex[1].x;
+			p1.y = CubePoints.model.vertex[1].y;
 			DrawLine_Algo01(p0, p1);
 
-			p0.x = CubePoints.model.selfVertex[1].x;
-			p0.y = CubePoints.model.selfVertex[1].y;
-			p1.x = CubePoints.model.selfVertex[2].x;
-			p1.y = CubePoints.model.selfVertex[2].y;
+			p0.x = CubePoints.model.vertex[1].x;
+			p0.y = CubePoints.model.vertex[1].y;
+			p1.x = CubePoints.model.vertex[2].x;
+			p1.y = CubePoints.model.vertex[2].y;
 			DrawLine_Algo01(p0, p1);
 
-			p0.x = CubePoints.model.selfVertex[2].x;
-			p0.y = CubePoints.model.selfVertex[2].y;
-			p1.x = CubePoints.model.selfVertex[3].x;
-			p1.y = CubePoints.model.selfVertex[3].y;
+			p0.x = CubePoints.model.vertex[2].x;
+			p0.y = CubePoints.model.vertex[2].y;
+			p1.x = CubePoints.model.vertex[3].x;
+			p1.y = CubePoints.model.vertex[3].y;
 			DrawLine_Algo01(p0, p1);
 
-			p0.x = CubePoints.model.selfVertex[3].x;
-			p0.y = CubePoints.model.selfVertex[3].y;
-			p1.x = CubePoints.model.selfVertex[0].x;
-			p1.y = CubePoints.model.selfVertex[0].y;
+			p0.x = CubePoints.model.vertex[3].x;
+			p0.y = CubePoints.model.vertex[3].y;
+			p1.x = CubePoints.model.vertex[0].x;
+			p1.y = CubePoints.model.vertex[0].y;
 			DrawLine_Algo01(p0, p1);
 
-			p0.x = CubePoints.model.selfVertex[0].x;
-			p0.y = CubePoints.model.selfVertex[0].y;
-			p1.x = CubePoints.model.selfVertex[4].x;
-			p1.y = CubePoints.model.selfVertex[4].y;
+			p0.x = CubePoints.model.vertex[0].x;
+			p0.y = CubePoints.model.vertex[0].y;
+			p1.x = CubePoints.model.vertex[4].x;
+			p1.y = CubePoints.model.vertex[4].y;
 			DrawLine_Algo01(p0, p1);
 
-			p0.x = CubePoints.model.selfVertex[1].x;
-			p0.y = CubePoints.model.selfVertex[1].y;
-			p1.x = CubePoints.model.selfVertex[5].x;
-			p1.y = CubePoints.model.selfVertex[5].y;
+			p0.x = CubePoints.model.vertex[1].x;
+			p0.y = CubePoints.model.vertex[1].y;
+			p1.x = CubePoints.model.vertex[5].x;
+			p1.y = CubePoints.model.vertex[5].y;
 			DrawLine_Algo01(p0, p1);
 
-			p0.x = CubePoints.model.selfVertex[2].x;
-			p0.y = CubePoints.model.selfVertex[2].y;
-			p1.x = CubePoints.model.selfVertex[6].x;
-			p1.y = CubePoints.model.selfVertex[6].y;
+			p0.x = CubePoints.model.vertex[2].x;
+			p0.y = CubePoints.model.vertex[2].y;
+			p1.x = CubePoints.model.vertex[6].x;
+			p1.y = CubePoints.model.vertex[6].y;
 			DrawLine_Algo01(p0, p1);
 
-			p0.x = CubePoints.model.selfVertex[3].x;
-			p0.y = CubePoints.model.selfVertex[3].y;
-			p1.x = CubePoints.model.selfVertex[7].x;
-			p1.y = CubePoints.model.selfVertex[7].y;
+			p0.x = CubePoints.model.vertex[3].x;
+			p0.y = CubePoints.model.vertex[3].y;
+			p1.x = CubePoints.model.vertex[7].x;
+			p1.y = CubePoints.model.vertex[7].y;
 			DrawLine_Algo01(p0, p1);
 
-			p0.x = CubePoints.model.selfVertex[4].x;
-			p0.y = CubePoints.model.selfVertex[4].y;
-			p1.x = CubePoints.model.selfVertex[5].x;
-			p1.y = CubePoints.model.selfVertex[5].y;
+			p0.x = CubePoints.model.vertex[4].x;
+			p0.y = CubePoints.model.vertex[4].y;
+			p1.x = CubePoints.model.vertex[5].x;
+			p1.y = CubePoints.model.vertex[5].y;
 			DrawLine_Algo01(p0, p1);
 
-			p0.x = CubePoints.model.selfVertex[5].x;
-			p0.y = CubePoints.model.selfVertex[5].y;
-			p1.x = CubePoints.model.selfVertex[6].x;
-			p1.y = CubePoints.model.selfVertex[6].y;
+			p0.x = CubePoints.model.vertex[5].x;
+			p0.y = CubePoints.model.vertex[5].y;
+			p1.x = CubePoints.model.vertex[6].x;
+			p1.y = CubePoints.model.vertex[6].y;
 			DrawLine_Algo01(p0, p1);
 
-			p0.x = CubePoints.model.selfVertex[6].x;
-			p0.y = CubePoints.model.selfVertex[6].y;
-			p1.x = CubePoints.model.selfVertex[7].x;
-			p1.y = CubePoints.model.selfVertex[7].y;
+			p0.x = CubePoints.model.vertex[6].x;
+			p0.y = CubePoints.model.vertex[6].y;
+			p1.x = CubePoints.model.vertex[7].x;
+			p1.y = CubePoints.model.vertex[7].y;
 			DrawLine_Algo01(p0, p1);
 
-			p0.x = CubePoints.model.selfVertex[7].x;
-			p0.y = CubePoints.model.selfVertex[7].y;
-			p1.x = CubePoints.model.selfVertex[4].x;
-			p1.y = CubePoints.model.selfVertex[4].y;
+			p0.x = CubePoints.model.vertex[7].x;
+			p0.y = CubePoints.model.vertex[7].y;
+			p1.x = CubePoints.model.vertex[4].x;
+			p1.y = CubePoints.model.vertex[4].y;
 			DrawLine_Algo01(p0, p1);
 
 			//强制重绘整个窗口

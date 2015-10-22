@@ -79,7 +79,7 @@ typedef struct _MATRIX4
 //模型，仅记录模型上各个点对于模型空间的位矢
 typedef struct _MODEL
 {
-	FLOAT3D selfVertex[8];
+	FLOAT3D vertex[8];
 }MODEL;
 
 //模型在世界空间的结构体
