@@ -33,7 +33,7 @@ OBJECT CubePoints;
 //测试用
 void FunctionTest()
 {
-	InitCamera(&camera, 300, 300, -300, 35, -45, 0, 256, 1024, 90, 90);
+	InitCamera(&camera, 300, 350, -400, 45, -45, 0, 50, 500, 90, 90);
 
 	//生成世界至视口矩阵
 	MATRIX4 WorldToView = { 0 };
@@ -41,15 +41,41 @@ void FunctionTest()
 
 	//为物体填入立方体的模型
 	MODEL points;
-	IniteModelToCube22(&points);
+	IniteModelWithCube22(&points);
 	InitObject(&CubePoints, points, 0, 0, 0, 0, 0, 0);
 
 	SingleObjectToViewTransform(&CubePoints, WorldToView);
 
+	/*******************************
+	*以上是正交投影
+	*下面尝试将观察空间变换至齐次剪裁空间
+	*以进行透视投影
+	********************************/
+	float r = 25.0f, l = -25.0f, t = 25.0f, b = -25.0f;
+	float z;
+	MATRIX4 hMatrix4 = { 0.0f };
+	Matrix4SetZero(&hMatrix4);
+
+	hMatrix4.var[0][0] = (2 * camera.NearZ) / (r - l);
+	hMatrix4.var[1][1] = (2 * camera.NearZ) / (t - b);
+	hMatrix4.var[2][0] = (r + l) / (r - l);
+	hMatrix4.var[2][1] = (t + b) / (t - b);
+	hMatrix4.var[2][2] = -(camera.FarZ + camera.NearZ) / (camera.FarZ - camera.NearZ);
+	hMatrix4.var[2][3] = -1;
+	hMatrix4.var[3][2] = -(2 * camera.NearZ*camera.FarZ) / (camera.FarZ - camera.NearZ);
+
+
+
+
 	for (int lop = 0; lop < 8; lop++)
 	{
-		CubePoints.model.vertex[lop].x += 300.0f;
-		CubePoints.model.vertex[lop].y += 300.0f;
+		z = -CubePoints.model.vertex[lop].z;
+		VectorTransform(&CubePoints.model.vertex[lop], hMatrix4);
+		CubePoints.model.vertex[lop].x /= z;
+		CubePoints.model.vertex[lop].y /= z;
+
+		CubePoints.model.vertex[lop].x = (CubePoints.model.vertex[lop].x + 1.0f) * 300;
+		CubePoints.model.vertex[lop].y = (CubePoints.model.vertex[lop].y + 1.0f) * 300;
 	}
 }
 

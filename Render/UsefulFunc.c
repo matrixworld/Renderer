@@ -43,7 +43,7 @@ float Determinant(MATRIX3 input)
 	return output;
 }
 
-void IniteModelToCube22(MODEL *input)
+void IniteModelWithCube22(MODEL *input)
 {
 	input->vertex[0].x = 100.0f;
 	input->vertex[0].y = 100.0f;

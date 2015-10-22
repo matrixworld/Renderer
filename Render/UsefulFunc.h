@@ -14,7 +14,7 @@ void Matrix4SetZero(MATRIX4 *);
 float Determinant(MATRIX3);
 
 //为模型填入数据
-void IniteModelToCube22(MODEL *);
+void IniteModelWithCube22(MODEL *);
 
 //为世界物体结构填入数据
 void InitObject(OBJECT *, MODEL, float x, float y, float z, float i, float j, float k);

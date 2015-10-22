@@ -101,6 +101,9 @@ typedef struct _CAMERA
 	FLOAT3D POS;
 	//摄像机在世界空间的转动角度
 	FLOAT3D rotation;
+	//x -> pitch
+	//y -> yaw
+	//z -> roll
 
 	//最近的距离，最远显示的距离
 	float NearZ, FarZ;
@@ -109,16 +112,5 @@ typedef struct _CAMERA
 	//v -> vertical h -> horizontal
 	int FOVV, FOVH;
 }CAMERA;
-
-//Recommended:
-//POS:0,0,-256
-
-//rotation:
-//pitch yaw roll
-
-//NearZ:256
-//FarZ:1000
-//FOVV:90 (degree)
-//FOVH:90 (degree)
 
 #endif
