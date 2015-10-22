@@ -55,20 +55,21 @@ MATRIX4 Rotation_SingleAxis(char axis, float degree);
 //生辰缩放矩阵
 MATRIX4 Scale(float multi);
 
-//整合RS操作
+//整合RST操作
 MATRIX4 RST(MATRIX4 S, MATRIX4 R,MATRIX4 T);
 
 //最后将变换作用于点或向量
-FLOAT3D VectorTransform(FLOAT3D src, MATRIX4 Transform);
-
-//先缩放再旋转再平移
-//将模型的点转到世界坐标
-void ObjectToWorldTransform(OBJECT *);
+void VectorTransform(FLOAT3D *src, MATRIX4 Transform);
 
 //世界至摄像机变换
 void WorldToViewTransform(CAMERA *,OBJECT *,MATRIX4 RST);
 
 //求逆矩阵
 MATRIX4 InvertMatrix4(MATRIX4);
+
+//求世界至视口矩阵
+MATRIX4 GetWorldToViewMatrix4(CAMERA *);
+
+void SingleObjectToViewTransform(OBJECT*, MATRIX4);
 
 #endif

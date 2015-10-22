@@ -32,27 +32,23 @@ OBJECT CubePoints;
 
 void FunctionTest()
 {
+	InitCamera(&camera, 300, 300, -300, 35, -45, 0, 256, 1024, 90, 90);
+
+	//生成世界至视口矩阵
+	MATRIX4 WorldToView = { 0 };
+	WorldToView = GetWorldToViewMatrix4(&camera);
+
 	//为物体填入立方体的模型
 	MODEL points;
 	IniteModelToCube22(&points);
 	InitObject(&CubePoints, points, 0, 0, 0, 0, 0, 0);
 
-	//将立方体转换至世界空间
-	ObjectToWorldTransform(&CubePoints);
-
-	InitCamera(&camera, 300, 300, -300, 35, -45, 0, 256, 1024, 90, 90);
-
-	//生成世界至视口矩阵
-	MATRIX4 ViewToWorld = { 0 };
-	ViewToWorld = InvertMatrix4(MatrixMul4(Rotation(camera.rotation), Transition(camera.POS)));
-
-	//将时间空间转换至视口空间
-	WorldToViewTransform(&camera, &CubePoints, ViewToWorld);
+	SingleObjectToViewTransform(&CubePoints, WorldToView);
 
 	for (int lop = 0; lop < 8; lop++)
 	{
-		CubePoints.model.selfVertex[lop].x += 256.0f;
-		CubePoints.model.selfVertex[lop].y += 256.0f;
+		CubePoints.model.selfVertex[lop].x += 300.0f;
+		CubePoints.model.selfVertex[lop].y += 300.0f;
 	}
 }
 

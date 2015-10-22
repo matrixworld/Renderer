@@ -184,42 +184,18 @@ MATRIX4 RST(MATRIX4 S, MATRIX4 R,MATRIX4 T)
 	return MatrixMul4(MatrixMul4(S, R), T);
 }
 
-FLOAT3D VectorTransform(FLOAT3D src, MATRIX4 TRS)
+void VectorTransform(FLOAT3D *src, MATRIX4 TRS)
 {
-	FLOAT3D des = { 0.0f };
-	des.x = src.x*TRS.var[0][0] + src.y*TRS.var[1][0] + src.z*TRS.var[2][0] + TRS.var[3][0];
-	des.y = src.x*TRS.var[0][1] + src.y*TRS.var[1][1] + src.z*TRS.var[2][1] + TRS.var[3][1];
-	des.z = src.x*TRS.var[0][2] + src.y*TRS.var[1][2] + src.z*TRS.var[2][2] + TRS.var[3][2];
-
-	return des;
-}
-
-void ObjectToWorldTransform(OBJECT *object)
-{
-	MATRIX4 FinalTransformMatrix44;
-	Matrix4SetZero(&FinalTransformMatrix44);
-
-	FinalTransformMatrix44 = RST(Scale(1.0f), Rotation(object->rotation), Transition(object->position));
-
-	for (int lop = 0; lop < 8; lop++)
-	{
-		object->model.selfVertex[lop] = VectorTransform(object->model.selfVertex[lop], FinalTransformMatrix44);
-	}
-	//模型的中心被改变
-	object->position.x = 0.0f;
-	object->position.y = 0.0f;
-	object->position.z = 0.0f;
-
-	object->rotation.x = 0.0f;
-	object->rotation.y = 0.0f;
-	object->rotation.z = 0.0f;
+	src->x = src->x*TRS.var[0][0] + src->y*TRS.var[1][0] + src->z*TRS.var[2][0] + TRS.var[3][0];
+	src->y = src->x*TRS.var[0][1] + src->y*TRS.var[1][1] + src->z*TRS.var[2][1] + TRS.var[3][1];
+	src->z = src->x*TRS.var[0][2] + src->y*TRS.var[1][2] + src->z*TRS.var[2][2] + TRS.var[3][2];
 }
 
 void WorldToViewTransform(CAMERA *camera,OBJECT *object,MATRIX4 RST)
 {
 	for (int lop = 0; lop < 8; lop++)
 	{
-		object->model.selfVertex[lop] = VectorTransform(object->model.selfVertex[lop], RST);
+		VectorTransform(&object->model.selfVertex[lop], RST);
 	}
 	camera->POS.x = 0;
 	camera->POS.y = 0;
@@ -303,4 +279,48 @@ MATRIX4 InvertMatrix4(MATRIX4 input)
 	}
 
 	return output;
+}
+
+MATRIX4 GetWorldToViewMatrix4(CAMERA *camera)
+{
+	MATRIX4 WTV;
+	WTV = InvertMatrix4(MatrixMul4(Rotation(camera->rotation), Transition(camera->POS)));
+
+	camera->POS.x = 0.0f;
+	camera->POS.y = 0.0f;
+	camera->POS.z = 0.0f;
+
+	camera->rotation.x = 0.0f;
+	camera->rotation.y = 0.0f;
+	camera->rotation.z = 0.0f;
+
+	return WTV;
+}
+
+//将物体的矩阵和摄像机的逆矩阵乘起来
+//再对物体进行变换
+void SingleObjectToViewTransform(OBJECT* object, MATRIX4 WTV)
+{
+	MATRIX4 ObjectToViewMatrix4;
+	Matrix4SetZero(&ObjectToViewMatrix4);
+
+	//物体坐标 -> 世界坐标
+	//先缩放和旋转
+	//再平移
+	ObjectToViewMatrix4 = RST(Scale(1.0f), Rotation(object->rotation), Transition(object->position));
+	ObjectToViewMatrix4 = MatrixMul4(ObjectToViewMatrix4, WTV);
+
+	for (int lop = 0; lop < 8; lop++)
+	{
+		VectorTransform(&object->model.selfVertex[lop], ObjectToViewMatrix4);
+	}
+
+	//模型的中心被改变
+	object->position.x = 0.0f;
+	object->position.y = 0.0f;
+	object->position.z = 0.0f;
+
+	object->rotation.x = 0.0f;
+	object->rotation.y = 0.0f;
+	object->rotation.z = 0.0f;
 }
