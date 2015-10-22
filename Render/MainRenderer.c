@@ -14,39 +14,7 @@
 #include "MagicMath.h"
 #include "UsefulFunc.h"
 
-void FunctionTest()
-{
-	MODEL points;
-	points.selfVertex[0].x = 1.0f;
-	points.selfVertex[0].y = 0.0f;
-	points.selfVertex[0].z = 0.0f;
 
-	points.selfVertex[1].x = 0.0f;
-	points.selfVertex[1].y = 1.0f;
-	points.selfVertex[1].z = 0.0f;
-
-	points.selfVertex[2].x = 0.0f;
-	points.selfVertex[2].y = 0.0f;
-	points.selfVertex[2].z = 1.0f;
-
-	OBJECT triangularPoints;
-	InitObject(&triangularPoints, points, 0, 0, 1, 0, 0, 0);
-
-	ObjectToWorldTransform(&triangularPoints);
-
-	CAMERA camera;
-	InitCamera(&camera, 0, 0, -5, 0, 0, 0, 256, 1024, 90, 90);
-
-	MATRIX4 matrixA = { 0 };
-
-	MATRIX4 ViewToWorld = { 0 };
-
-	matrixA = MatrixMul4(Rotation(camera.rotation), Transition(camera.POS));
-
-	ViewToWorld = InvertMatrix4(matrixA);
-
-	WorldToViewTransform(&camera,&triangularPoints,ViewToWorld);
-}
 
 ///////////
 //全局变量//
@@ -55,8 +23,39 @@ void FunctionTest()
 //储存渲染结果的设备上下文
 HDC buffer_dc;
 HBITMAP bmp;
-//观察相机
+FLOAT2D p0, p1;
 CAMERA camera;
+
+//创建物体
+//有8个点
+//源自立方体的8个顶点
+OBJECT CubePoints;
+
+void FunctionTest()
+{
+	//为物体填入立方体的模型
+	MODEL points;
+	IniteModelToCube22(&points);
+	InitObject(&CubePoints, points, 0, 0, 0, 0, 0, 0);
+
+	//将立方体转换至世界空间
+	ObjectToWorldTransform(&CubePoints);
+
+	InitCamera(&camera, 300, 300, -300, 45, -45, 0, 256, 1024, 90, 90);
+
+	//生成世界至视口矩阵
+	MATRIX4 ViewToWorld = { 0 };
+	ViewToWorld = InvertMatrix4(MatrixMul4(Rotation(camera.rotation), Transition(camera.POS)));
+
+	//将时间空间转换至视口空间
+	WorldToViewTransform(&camera, &CubePoints, ViewToWorld);
+
+	for (int lop = 0; lop < 8; lop++)
+	{
+		CubePoints.model.selfVertex[lop].x += 256.0f;
+		CubePoints.model.selfVertex[lop].y += 256.0f;
+	}
+}
 
 ///////////
 //画线算法//
@@ -94,11 +93,11 @@ void DrawLine_Algo01(FLOAT2D p0, FLOAT2D p1)
 	for (int i = (int)p0.x; i <= p1.x; i++) {
 		if (steep)
 		{
-			SetPixel(buffer_dc, painter_y, RENDER_Y - 1 - i, BLACKCOLOR);
+			SetPixel(buffer_dc, painter_y, i, BLACKCOLOR);
 		}
 		else
 		{
-			SetPixel(buffer_dc, i, RENDER_Y - 1 - painter_y, BLACKCOLOR);
+			SetPixel(buffer_dc, i, painter_y, BLACKCOLOR);
 		}
 		err -= dy;
 		if (err < 0) {
@@ -123,7 +122,7 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		FillRect(buffer_dc, &rect, CreateSolidBrush(BGCOLOR));
 
 		//初始化摄像机信息
-		InitCamera(&camera, 0, 0, -256, 0, 0, 1, 256, 1000, 90, 90);
+		//InitCamera(&camera, 0, 0, -256, 0, 0, 1, 256, 1000, 90, 90);
 		break;
 	//窗口重绘时
 	case WM_PAINT:
@@ -134,11 +133,6 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		if (wParam == VK_ESCAPE) {
 			PostQuitMessage(0);
 		}
-		//测试用
-		if (wParam == VK_F4)
-		{
-			FunctionTest();
-		}
 		//响应键盘F5按键
 		if (wParam == VK_F5)
 		{
@@ -147,6 +141,80 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 
 			//TODO
 			//三维空间画点
+			FunctionTest();
+
+			//画出线条
+			p0.x = CubePoints.model.selfVertex[0].x;
+			p0.y = CubePoints.model.selfVertex[0].y;
+			p1.x = CubePoints.model.selfVertex[1].x;
+			p1.y = CubePoints.model.selfVertex[1].y;
+			DrawLine_Algo01(p0, p1);
+
+			p0.x = CubePoints.model.selfVertex[1].x;
+			p0.y = CubePoints.model.selfVertex[1].y;
+			p1.x = CubePoints.model.selfVertex[2].x;
+			p1.y = CubePoints.model.selfVertex[2].y;
+			DrawLine_Algo01(p0, p1);
+
+			p0.x = CubePoints.model.selfVertex[2].x;
+			p0.y = CubePoints.model.selfVertex[2].y;
+			p1.x = CubePoints.model.selfVertex[3].x;
+			p1.y = CubePoints.model.selfVertex[3].y;
+			DrawLine_Algo01(p0, p1);
+
+			p0.x = CubePoints.model.selfVertex[3].x;
+			p0.y = CubePoints.model.selfVertex[3].y;
+			p1.x = CubePoints.model.selfVertex[0].x;
+			p1.y = CubePoints.model.selfVertex[0].y;
+			DrawLine_Algo01(p0, p1);
+
+			p0.x = CubePoints.model.selfVertex[0].x;
+			p0.y = CubePoints.model.selfVertex[0].y;
+			p1.x = CubePoints.model.selfVertex[4].x;
+			p1.y = CubePoints.model.selfVertex[4].y;
+			DrawLine_Algo01(p0, p1);
+
+			p0.x = CubePoints.model.selfVertex[1].x;
+			p0.y = CubePoints.model.selfVertex[1].y;
+			p1.x = CubePoints.model.selfVertex[5].x;
+			p1.y = CubePoints.model.selfVertex[5].y;
+			DrawLine_Algo01(p0, p1);
+
+			p0.x = CubePoints.model.selfVertex[2].x;
+			p0.y = CubePoints.model.selfVertex[2].y;
+			p1.x = CubePoints.model.selfVertex[6].x;
+			p1.y = CubePoints.model.selfVertex[6].y;
+			DrawLine_Algo01(p0, p1);
+
+			p0.x = CubePoints.model.selfVertex[3].x;
+			p0.y = CubePoints.model.selfVertex[3].y;
+			p1.x = CubePoints.model.selfVertex[7].x;
+			p1.y = CubePoints.model.selfVertex[7].y;
+			DrawLine_Algo01(p0, p1);
+
+			p0.x = CubePoints.model.selfVertex[4].x;
+			p0.y = CubePoints.model.selfVertex[4].y;
+			p1.x = CubePoints.model.selfVertex[5].x;
+			p1.y = CubePoints.model.selfVertex[5].y;
+			DrawLine_Algo01(p0, p1);
+
+			p0.x = CubePoints.model.selfVertex[5].x;
+			p0.y = CubePoints.model.selfVertex[5].y;
+			p1.x = CubePoints.model.selfVertex[6].x;
+			p1.y = CubePoints.model.selfVertex[6].y;
+			DrawLine_Algo01(p0, p1);
+
+			p0.x = CubePoints.model.selfVertex[6].x;
+			p0.y = CubePoints.model.selfVertex[6].y;
+			p1.x = CubePoints.model.selfVertex[7].x;
+			p1.y = CubePoints.model.selfVertex[7].y;
+			DrawLine_Algo01(p0, p1);
+
+			p0.x = CubePoints.model.selfVertex[7].x;
+			p0.y = CubePoints.model.selfVertex[7].y;
+			p1.x = CubePoints.model.selfVertex[4].x;
+			p1.y = CubePoints.model.selfVertex[4].y;
+			DrawLine_Algo01(p0, p1);
 
 			//强制重绘整个窗口
 			BitBlt(GetDC(hWnd), 0, 0, RENDER_X - 1, RENDER_Y - 1, buffer_dc, 0, 0, SRCCOPY);

@@ -26,8 +26,8 @@ z : Roll
 #define WINDOW_X (600)
 #define WINDOW_Y (600)
 
-#define RENDER_X (512)
-#define RENDER_Y (512)
+#define RENDER_X (600)
+#define RENDER_Y (600)
 
 /////////
 //宏定义//
@@ -79,7 +79,7 @@ typedef struct _MATRIX4
 //模型，仅记录模型上各个点对于模型空间的位矢
 typedef struct _MODEL
 {
-	FLOAT3D selfVertex[3];
+	FLOAT3D selfVertex[8];
 }MODEL;
 
 //模型在世界空间的结构体

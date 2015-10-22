@@ -128,7 +128,7 @@ MATRIX4 Rotation_SingleAxis(char axis, float degree)
 	matrix_R.var[3][3] = 1.0f;
 
 	//如果没进行旋转
-	if (degree <= 0.001)
+	if (-0.001f <= degree && degree <= 0.001f)
 	{
 		return matrix_R;
 	}
@@ -201,7 +201,7 @@ void ObjectToWorldTransform(OBJECT *object)
 
 	FinalTransformMatrix44 = RST(Scale(1.0f), Rotation(object->rotation), Transition(object->position));
 
-	for (int lop = 0; lop < 3; lop++)
+	for (int lop = 0; lop < 8; lop++)
 	{
 		object->model.selfVertex[lop] = VectorTransform(object->model.selfVertex[lop], FinalTransformMatrix44);
 	}
@@ -218,7 +218,7 @@ void ObjectToWorldTransform(OBJECT *object)
 void WorldToViewTransform(CAMERA *camera,OBJECT *object,MATRIX4 RST)
 {
 	//TODO
-	for (int lop = 0; lop < 3; lop++)
+	for (int lop = 0; lop < 8; lop++)
 	{
 		object->model.selfVertex[lop] = VectorTransform(object->model.selfVertex[lop], RST);
 	}
@@ -229,6 +229,9 @@ void WorldToViewTransform(CAMERA *camera,OBJECT *object,MATRIX4 RST)
 	camera->rotation.x = 0;
 	camera->rotation.y = 0;
 	camera->rotation.z = 0;
+
+	//TODO
+	//物体的位置要不要更改？
 }
 
 //计算逆矩阵
@@ -238,10 +241,11 @@ MATRIX4 InvertMatrix4(MATRIX4 input)
 	MATRIX4 output;
 	//用于储存每次的余子式
 	MATRIX3 tmp;
-	float firstPart = 0.0f;
 
 	Matrix4SetZero(&output);
 
+	/*
+	float firstPart ;
 	//先算分母，再求倒
 	firstPart =
 		(input.var[0][0] * input.var[1][1] * input.var[2][2] * input.var[3][3]) +
@@ -255,6 +259,7 @@ MATRIX4 InvertMatrix4(MATRIX4 input)
 
 	//求倒
 	firstPart = 1 / firstPart;
+	*/
 
 	//最里层的循环
 	int x, y;

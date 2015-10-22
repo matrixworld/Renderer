@@ -69,7 +69,6 @@ void ObjectToWorldTransform(OBJECT *);
 void WorldToViewTransform(CAMERA *,OBJECT *,MATRIX4 RST);
 
 //ÇóÄæ¾ØÕó
-//This is not TRANSPOSE !
 MATRIX4 InvertMatrix4(MATRIX4);
 
 #endif
