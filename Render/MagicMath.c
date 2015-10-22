@@ -186,9 +186,15 @@ MATRIX4 RST(MATRIX4 S, MATRIX4 R,MATRIX4 T)
 
 void VectorTransform(FLOAT3D *src, MATRIX4 TRS)
 {
-	src->x = src->x*TRS.var[0][0] + src->y*TRS.var[1][0] + src->z*TRS.var[2][0] + TRS.var[3][0];
-	src->y = src->x*TRS.var[0][1] + src->y*TRS.var[1][1] + src->z*TRS.var[2][1] + TRS.var[3][1];
-	src->z = src->x*TRS.var[0][2] + src->y*TRS.var[1][2] + src->z*TRS.var[2][2] + TRS.var[3][2];
+	FLOAT3D newPOS;
+
+	newPOS.x = src->x*TRS.var[0][0] + src->y*TRS.var[1][0] + src->z*TRS.var[2][0] + TRS.var[3][0];
+	newPOS.y = src->x*TRS.var[0][1] + src->y*TRS.var[1][1] + src->z*TRS.var[2][1] + TRS.var[3][1];
+	newPOS.z = src->x*TRS.var[0][2] + src->y*TRS.var[1][2] + src->z*TRS.var[2][2] + TRS.var[3][2];
+
+	src->x = newPOS.x;
+	src->y = newPOS.y;
+	src->z = newPOS.z;
 }
 
 void WorldToViewTransform(CAMERA *camera,OBJECT *object,MATRIX4 RST)
