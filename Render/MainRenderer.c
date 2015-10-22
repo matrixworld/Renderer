@@ -14,8 +14,6 @@
 #include "MagicMath.h"
 #include "UsefulFunc.h"
 
-
-
 ///////////
 //全局变量//
 //////////
@@ -23,6 +21,7 @@
 //储存渲染结果的设备上下文
 HDC buffer_dc;
 HBITMAP bmp;
+//删了下面这个
 FLOAT2D p0, p1;
 CAMERA camera;
 
@@ -41,7 +40,7 @@ void FunctionTest()
 	//将立方体转换至世界空间
 	ObjectToWorldTransform(&CubePoints);
 
-	InitCamera(&camera, 300, 300, -300, 45, -45, 0, 256, 1024, 90, 90);
+	InitCamera(&camera, 300, 300, -300, 35, -45, 0, 256, 1024, 90, 90);
 
 	//生成世界至视口矩阵
 	MATRIX4 ViewToWorld = { 0 };

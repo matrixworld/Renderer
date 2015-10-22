@@ -217,7 +217,6 @@ void ObjectToWorldTransform(OBJECT *object)
 
 void WorldToViewTransform(CAMERA *camera,OBJECT *object,MATRIX4 RST)
 {
-	//TODO
 	for (int lop = 0; lop < 8; lop++)
 	{
 		object->model.selfVertex[lop] = VectorTransform(object->model.selfVertex[lop], RST);
