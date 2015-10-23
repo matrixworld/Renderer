@@ -29,90 +29,37 @@ CAMERA camera;
 //有8个点
 //源自立方体的8个顶点
 OBJECT CubePoints;
-OBJECT Axises;
 
 //测试用
 void FunctionTest()
 {
-	InitCamera(&camera, 400, 500, -450, 35, -35, 0, 50, 1024, 90, 90);
-
-	//生成世界至视口矩阵
-	MATRIX4 WorldToView = { 0 };
-	WorldToView = GetWorldToViewMatrix4(&camera);
-
 	//为物体填入立方体的模型
 	MODEL points;
 	IniteModelWithCube22(&points);
 	InitObject(&CubePoints, points, 0, 0, 0, 0, 0, 0);
-	SingleObjectToViewTransform(&CubePoints, WorldToView);
+	InitCamera(&camera, 400, 500, -450, 35, -35, 0, 50, 1024, 90, 90);
 
-	//画坐标轴
-	MODEL axises = { 0.0f };
-	axises.vertex[0].x = 0.0f;
-	axises.vertex[0].y = 0.0f;
-	axises.vertex[0].z = 0.0f;
+	//生成世界至视口矩阵
+	MATRIX4 WorldToHomo = { 0 };
+	WorldToHomo = GetWorldToHomoMatrix4(&camera);
+	//生成世界至齐次剪裁空间矩阵
 
-	axises.vertex[1].x = 500.0f;
-	axises.vertex[1].y = 0.0f;
-	axises.vertex[1].z = 0.0f;
+	SingleObjectToViewTransform(&CubePoints, WorldToHomo);
+	/*
+	z = CubePoints.model.vertex[lop].z;
 
-	axises.vertex[2].x = 0.0f;
-	axises.vertex[2].y = 300.0f;
-	axises.vertex[2].z = 0.0f;
+	VectorTransform(&CubePoints.model.vertex[lop], hMatrix4);
 
-	axises.vertex[3].x = 0.0f;
-	axises.vertex[3].y = 0.0f;
-	axises.vertex[3].z = 100.0f;
+	CubePoints.model.vertex[lop].x /= z;
+	CubePoints.model.vertex[lop].y /= z;
+	CubePoints.model.vertex[lop].z /= z;
+	*/
 
-	InitObject(&Axises, axises, 0, 0, 0, 0, 0, 0);
-	SingleObjectToViewTransform(&Axises, WorldToView);
 
-	/*******************************
-	*以上是正交投影
-	*下面尝试将观察空间变换至齐次剪裁空间
-	*以进行透视投影
-	********************************/
-	float r = 25.0f, l = -25.0f, t = 25.0f, b = -25.0f;
-	float z;
-	//齐次剪裁空间变换矩阵
-	MATRIX4 hMatrix4 = { 0.0f };
-	Matrix4SetZero(&hMatrix4);
-
-	hMatrix4.var[0][0] = (2 * camera.NearZ) / (r - l);
-	hMatrix4.var[1][1] = (2 * camera.NearZ) / (t - b);
-	hMatrix4.var[2][0] = (r + l) / (r - l);
-	hMatrix4.var[2][1] = (t + b) / (t - b);
-	hMatrix4.var[2][2] = -(camera.FarZ + camera.NearZ) / (camera.FarZ - camera.NearZ);
-	hMatrix4.var[2][3] = 1.0f;
-	hMatrix4.var[3][2] = -(2.0f*camera.NearZ*camera.FarZ) / (camera.FarZ - camera.NearZ);
-
-	for (int lop = 0; lop < 4; lop++)
+	for (int lop = 0; lop < CubePoints.model.vertexNum; lop++)
 	{
-		z = Axises.model.vertex[lop].z;
-
-		VectorTransform(&Axises.model.vertex[lop], hMatrix4);
-
-		Axises.model.vertex[lop].x /= z;
-		Axises.model.vertex[lop].y /= z;
-		Axises.model.vertex[lop].z /= z;
-
-		Axises.model.vertex[lop].x = (Axises.model.vertex[lop].x + 1.0f) * 300;
-		Axises.model.vertex[lop].y = (Axises.model.vertex[lop].y + 1.0f) * 300;
-	}
-
-
-	for (int lop = 0; lop < 8; lop++)
-	{
-		z = CubePoints.model.vertex[lop].z;
-
-		VectorTransform(&CubePoints.model.vertex[lop], hMatrix4);
-
-		CubePoints.model.vertex[lop].x /= z;
-		CubePoints.model.vertex[lop].y /= z;
-		CubePoints.model.vertex[lop].z /= z;
-
-		CubePoints.model.vertex[lop].x = (CubePoints.model.vertex[lop].x + 1.0f) * 300;
-		CubePoints.model.vertex[lop].y = (CubePoints.model.vertex[lop].y + 1.0f) * 300;
+		CubePoints.model.vertexList[lop].x = (CubePoints.model.vertexList[lop].x + 1.0f) * 300;
+		CubePoints.model.vertexList[lop].y = (CubePoints.model.vertexList[lop].y + 1.0f) * 300;
 	}
 }
 
@@ -202,108 +149,15 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 			//三维空间画点
 			FunctionTest();
 
-			//画出坐标轴
-			p0.x = Axises.model.vertex[0].x;
-			p0.y = Axises.model.vertex[0].y;
-			p1.x = Axises.model.vertex[1].x;
-			p1.y = Axises.model.vertex[1].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = Axises.model.vertex[0].x;
-			p0.y = Axises.model.vertex[0].y;
-			p1.x = Axises.model.vertex[2].x;
-			p1.y = Axises.model.vertex[2].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = Axises.model.vertex[0].x;
-			p0.y = Axises.model.vertex[0].y;
-			p1.x = Axises.model.vertex[3].x;
-			p1.y = Axises.model.vertex[3].y;
-			DrawLine_Algo01(p0, p1);
-
-			//画出线条
-			p0.x = CubePoints.model.vertex[0].x;
-			p0.y = CubePoints.model.vertex[0].y;
-			p1.x = CubePoints.model.vertex[1].x;
-			p1.y = CubePoints.model.vertex[1].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertex[1].x;
-			p0.y = CubePoints.model.vertex[1].y;
-			p1.x = CubePoints.model.vertex[2].x;
-			p1.y = CubePoints.model.vertex[2].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertex[2].x;
-			p0.y = CubePoints.model.vertex[2].y;
-			p1.x = CubePoints.model.vertex[3].x;
-			p1.y = CubePoints.model.vertex[3].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertex[3].x;
-			p0.y = CubePoints.model.vertex[3].y;
-			p1.x = CubePoints.model.vertex[0].x;
-			p1.y = CubePoints.model.vertex[0].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertex[0].x;
-			p0.y = CubePoints.model.vertex[0].y;
-			p1.x = CubePoints.model.vertex[4].x;
-			p1.y = CubePoints.model.vertex[4].y;
-			DrawLine_Algo01(p0, p1);
-
-			
-			p0.x = CubePoints.model.vertex[1].x;
-			p0.y = CubePoints.model.vertex[1].y;
-			p1.x = CubePoints.model.vertex[5].x;
-			p1.y = CubePoints.model.vertex[5].y;
-			DrawLine_Algo01(p0, p1);
-			
-
-			p0.x = CubePoints.model.vertex[2].x;
-			p0.y = CubePoints.model.vertex[2].y;
-			p1.x = CubePoints.model.vertex[6].x;
-			p1.y = CubePoints.model.vertex[6].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertex[3].x;
-			p0.y = CubePoints.model.vertex[3].y;
-			p1.x = CubePoints.model.vertex[7].x;
-			p1.y = CubePoints.model.vertex[7].y;
-			DrawLine_Algo01(p0, p1);
-
-			
-			p0.x = CubePoints.model.vertex[4].x;
-			p0.y = CubePoints.model.vertex[4].y;
-			p1.x = CubePoints.model.vertex[5].x;
-			p1.y = CubePoints.model.vertex[5].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertex[5].x;
-			p0.y = CubePoints.model.vertex[5].y;
-			p1.x = CubePoints.model.vertex[6].x;
-			p1.y = CubePoints.model.vertex[6].y;
-			DrawLine_Algo01(p0, p1);
-			
-
-			p0.x = CubePoints.model.vertex[6].x;
-			p0.y = CubePoints.model.vertex[6].y;
-			p1.x = CubePoints.model.vertex[7].x;
-			p1.y = CubePoints.model.vertex[7].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertex[7].x;
-			p0.y = CubePoints.model.vertex[7].y;
-			p1.x = CubePoints.model.vertex[4].x;
-			p1.y = CubePoints.model.vertex[4].y;
-			DrawLine_Algo01(p0, p1);
-
 			//强制重绘整个窗口
 			BitBlt(GetDC(hWnd), 0, 0, RENDER_X - 1, RENDER_Y - 1, buffer_dc, 0, 0, SRCCOPY);
 		}
 		break;
 	case WM_DESTROY:
-		//销毁
+		//销毁模型！！！
+		DeleteModel(&CubePoints.model);
+
+
 		DeleteDC(buffer_dc);
 		DeleteObject(bmp);
 

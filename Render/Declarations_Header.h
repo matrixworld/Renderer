@@ -79,7 +79,12 @@ typedef struct _MATRIX4
 //模型，仅记录模型上各个点对于模型空间的位矢
 typedef struct _MODEL
 {
-	FLOAT3D vertex[8];
+	//用索引表来记录三角形
+	FLOAT3D *vertexList;
+	//记录点的个数
+	int vertexNum;
+	//索引表以-1结束
+	int verterListIndex[40];
 }MODEL;
 
 //模型在世界空间的结构体
@@ -91,8 +96,6 @@ typedef struct _OBJECT
 	//模型本身旋转的度数
 	FLOAT3D rotation;
 }OBJECT;
-
-
 
 //摄像机
 typedef struct _CAMERA

@@ -2,6 +2,7 @@
 #define RENDERER_USEFULFUNC_H_
 
 #include "Declarations_Header.h"
+#include <stdlib.h>
 
 //交换数据
 void swap(float *, float *);
@@ -13,8 +14,11 @@ void Matrix4SetZero(MATRIX4 *);
 //行列式求值
 float Determinant(MATRIX3);
 
+void InitModel(MODEL *,int);
 //为模型填入数据
 void IniteModelWithCube22(MODEL *);
+
+void DeleteModel(MODEL *);
 
 //为世界物体结构填入数据
 void InitObject(OBJECT *, MODEL, float x, float y, float z, float i, float j, float k);

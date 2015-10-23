@@ -269,10 +269,24 @@ MATRIX4 InvertMatrix4(MATRIX4 input)
 	return output;
 }
 
-MATRIX4 GetWorldToViewMatrix4(CAMERA *camera)
+MATRIX4 GetWorldToHomoMatrix4(CAMERA *camera)
 {
 	MATRIX4 WTV;
 	WTV = InvertMatrix4(MatrixMul4(Rotation(camera->rotation), Transition(camera->POS)));
+
+	MATRIX4 hMatrix4 = { 0.0f };
+	Matrix4SetZero(&hMatrix4);
+
+	//TODO
+	float l, r, t, b;
+
+	hMatrix4.var[0][0] = (2 * camera->NearZ) / (r - l);
+	hMatrix4.var[1][1] = (2 * camera->NearZ) / (t - b);
+	hMatrix4.var[2][0] = (r + l) / (r - l);
+	hMatrix4.var[2][1] = (t + b) / (t - b);
+	hMatrix4.var[2][2] = -(camera->FarZ + camera->NearZ) / (camera->FarZ - camera->NearZ);
+	hMatrix4.var[2][3] = 1.0f;
+	hMatrix4.var[3][2] = -(2.0f*camera->NearZ*camera->FarZ) / (camera->FarZ - camera->NearZ);
 
 	camera->POS.x = 0.0f;
 	camera->POS.y = 0.0f;
@@ -287,7 +301,7 @@ MATRIX4 GetWorldToViewMatrix4(CAMERA *camera)
 
 //将物体的矩阵和摄像机的逆矩阵乘起来
 //再对物体进行变换
-void SingleObjectToViewTransform(OBJECT* object, MATRIX4 WTV)
+void SingleObjectToHomoTransform(OBJECT* object, MATRIX4 WTH)
 {
 	MATRIX4 ObjectToViewMatrix4;
 	Matrix4SetZero(&ObjectToViewMatrix4);
@@ -296,11 +310,11 @@ void SingleObjectToViewTransform(OBJECT* object, MATRIX4 WTV)
 	//先缩放和旋转
 	//再平移
 	ObjectToViewMatrix4 = RST(Scale(1.0f), Rotation(object->rotation), Transition(object->position));
-	ObjectToViewMatrix4 = MatrixMul4(ObjectToViewMatrix4, WTV);
+	ObjectToViewMatrix4 = MatrixMul4(ObjectToViewMatrix4, WTH);
 
-	for (int lop = 0; lop < 8; lop++)
+	for (int lop = 0; lop < object->model.vertexNum; lop++)
 	{
-		VectorTransform(&object->model.vertex[lop], ObjectToViewMatrix4);
+		VectorTransform(&object->model.vertexList[lop], ObjectToViewMatrix4);
 	}
 
 	//模型的中心被改变

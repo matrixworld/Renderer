@@ -66,10 +66,10 @@ void VectorTransform(FLOAT3D *src, MATRIX4 Transform);
 //求逆矩阵
 MATRIX4 InvertMatrix4(MATRIX4);
 
-//求世界至视口矩阵
-MATRIX4 GetWorldToViewMatrix4(CAMERA *);
+//求世界至齐次剪裁空间矩阵
+MATRIX4 GetWorldToHomoMatrix4(CAMERA *);
 
-//将物体的点从物体空间转换到视口空间
-void SingleObjectToViewTransform(OBJECT*, MATRIX4);
+//将物体的点从物体空间转换到齐次剪裁空间空间
+void SingleObjectToHomoTransform(OBJECT*, MATRIX4);
 
 #endif
