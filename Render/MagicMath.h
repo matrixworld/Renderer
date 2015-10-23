@@ -14,6 +14,13 @@
 *z 从 -1 到 1
 *
 *位于(0,0,0)
+
+
+变换顺序：
+世界到视口
+物体到世界
+
+合并以上两个，对点进行变换
 *
 ********************/
 
@@ -66,10 +73,14 @@ void VectorTransform(FLOAT3D *src, MATRIX4 Transform);
 //求逆矩阵
 MATRIX4 InvertMatrix4(MATRIX4);
 
-//求世界至齐次剪裁空间矩阵
-MATRIX4 GetWorldToHomoMatrix4(CAMERA *);
+//求世界至视口
+MATRIX4 GetWorldToViewMatrix4(CAMERA *);
 
 //将物体的点从物体空间转换到齐次剪裁空间空间
-void SingleObjectToHomoTransform(OBJECT*, MATRIX4);
+void SingleObjectToViewTransform(OBJECT*, MATRIX4);
+
+MATRIX4 GetViewToHomoMatrix4(CAMERA *);
+
+void SingleObectFromViewToHomoTransform(OBJECT*, MATRIX4);
 
 #endif

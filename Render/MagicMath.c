@@ -269,24 +269,13 @@ MATRIX4 InvertMatrix4(MATRIX4 input)
 	return output;
 }
 
-MATRIX4 GetWorldToHomoMatrix4(CAMERA *camera)
+MATRIX4 GetWorldToViewMatrix4(CAMERA *camera)
 {
 	MATRIX4 WTV;
 	WTV = InvertMatrix4(MatrixMul4(Rotation(camera->rotation), Transition(camera->POS)));
 
 	MATRIX4 hMatrix4 = { 0.0f };
 	Matrix4SetZero(&hMatrix4);
-
-	//TODO
-	float l, r, t, b;
-
-	hMatrix4.var[0][0] = (2 * camera->NearZ) / (r - l);
-	hMatrix4.var[1][1] = (2 * camera->NearZ) / (t - b);
-	hMatrix4.var[2][0] = (r + l) / (r - l);
-	hMatrix4.var[2][1] = (t + b) / (t - b);
-	hMatrix4.var[2][2] = -(camera->FarZ + camera->NearZ) / (camera->FarZ - camera->NearZ);
-	hMatrix4.var[2][3] = 1.0f;
-	hMatrix4.var[3][2] = -(2.0f*camera->NearZ*camera->FarZ) / (camera->FarZ - camera->NearZ);
 
 	camera->POS.x = 0.0f;
 	camera->POS.y = 0.0f;
@@ -301,7 +290,7 @@ MATRIX4 GetWorldToHomoMatrix4(CAMERA *camera)
 
 //将物体的矩阵和摄像机的逆矩阵乘起来
 //再对物体进行变换
-void SingleObjectToHomoTransform(OBJECT* object, MATRIX4 WTH)
+void SingleObjectToViewTransform(OBJECT* object, MATRIX4 WTV)
 {
 	MATRIX4 ObjectToViewMatrix4;
 	Matrix4SetZero(&ObjectToViewMatrix4);
@@ -310,7 +299,7 @@ void SingleObjectToHomoTransform(OBJECT* object, MATRIX4 WTH)
 	//先缩放和旋转
 	//再平移
 	ObjectToViewMatrix4 = RST(Scale(1.0f), Rotation(object->rotation), Transition(object->position));
-	ObjectToViewMatrix4 = MatrixMul4(ObjectToViewMatrix4, WTH);
+	ObjectToViewMatrix4 = MatrixMul4(ObjectToViewMatrix4, WTV);
 
 	for (int lop = 0; lop < object->model.vertexNum; lop++)
 	{
@@ -325,4 +314,43 @@ void SingleObjectToHomoTransform(OBJECT* object, MATRIX4 WTH)
 	object->rotation.x = 0.0f;
 	object->rotation.y = 0.0f;
 	object->rotation.z = 0.0f;
+}
+
+MATRIX4 GetViewToHomoMatrix4(CAMERA *camera)
+{
+	MATRIX4 hMatrix4;
+	Matrix4SetZero(&hMatrix4);
+
+	float l, r, t, b;
+
+	t = camera->NearZ*tanf(camera->FOVH / 2.0f*0.01745f);
+	b = -t;
+	r = camera->NearZ*tanf(camera->FOVV / 2.0f*0.01745f);
+	l = -r;
+
+	hMatrix4.var[0][0] = (2 * camera->NearZ) / (r - l);
+	hMatrix4.var[1][1] = (2 * camera->NearZ) / (t - b);
+	//hMatrix4.var[2][0] = (r + l) / (r - l);
+	//hMatrix4.var[2][1] = (t + b) / (t - b);
+	hMatrix4.var[2][2] = -(camera->FarZ + camera->NearZ) / (camera->FarZ - camera->NearZ);
+	hMatrix4.var[2][3] = 1.0f;
+	hMatrix4.var[3][2] = -(2.0f*camera->NearZ*camera->FarZ) / (camera->FarZ - camera->NearZ);
+
+	return hMatrix4;
+}
+
+void SingleObectFromViewToHomoTransform(OBJECT *object, MATRIX4 VTH)
+{
+	float z;
+
+	for (int lop = 0; lop < object->model.vertexNum; lop++)
+	{
+		z = object->model.vertexList[lop].z;
+
+		VectorTransform(&object->model.vertexList[lop], VTH);
+
+		object->model.vertexList[lop].x /= z;
+		object->model.vertexList[lop].y /= z;
+		object->model.vertexList[lop].z /= z;
+	}
 }

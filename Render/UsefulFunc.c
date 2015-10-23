@@ -46,9 +46,10 @@ float Determinant(MATRIX3 input)
 void InitModel(MODEL *input,int vertexNum)
 {
 	input->vertexList = (FLOAT3D*)malloc(vertexNum*sizeof(FLOAT3D));
+	input->vertexNum = vertexNum;
 }
 
-void IniteModelWithCube22(MODEL *input)
+void InitModelWithCube22(MODEL *input)
 {
 	InitModel(input, 8);
 
@@ -146,9 +147,11 @@ void DeleteModel(MODEL *input)
 	input->vertexNum = 0;
 }
 
-void InitObject(OBJECT *object, MODEL model, float x, float y, float z, float i, float j, float k)
+void InitObject(OBJECT *object, float x, float y, float z, float i, float j, float k)
 {
-	object->model = model;
+	InitModelWithCube22(&object->model);
+
+
 	object->position.x = x;
 	object->position.y = y;
 	object->position.z = z;
