@@ -112,8 +112,10 @@ typedef struct _CAMERA
 	float NearZ, FarZ;
 
 	//Field of View
-	//v -> vertical h -> horizontal
-	int FOVV, FOVH;
+	int FOV;
+	//¸ß¿í±È
+	//16:9
+	float aspect;
 }CAMERA;
 
 #endif

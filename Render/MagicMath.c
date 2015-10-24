@@ -330,17 +330,15 @@ MATRIX4 GetViewToHomoMatrix4(CAMERA *camera)
 
 	float l, r, t, b;
 
-	t = camera->NearZ*tanf(camera->FOVH *0.01745f / 2.0f);
-	b = -t;
-	r = camera->NearZ*tanf(camera->FOVV *0.01745f / 2.0f);
+	r = camera->NearZ*tanf(camera->FOV *0.01745f / 2.0f);
 	l = -r;
+	t = r / camera->aspect;
+	b = -t;
 
 	hMatrix4.var[0][0] = (2 * camera->NearZ) / (r - l);
 	hMatrix4.var[1][1] = (2 * camera->NearZ) / (t - b);
 	//hMatrix4.var[2][0] = (r + l) / (r - l);
 	//hMatrix4.var[2][1] = (t + b) / (t - b);
-	//TODO
-	//这里要验证一下
 	hMatrix4.var[2][2] = (camera->FarZ + camera->NearZ) / (camera->FarZ - camera->NearZ);
 	hMatrix4.var[2][3] = 1.0f;
 	hMatrix4.var[3][2] = -(2.0f*camera->NearZ*camera->FarZ) / (camera->FarZ - camera->NearZ);
