@@ -43,8 +43,7 @@ int LiangBarskyLineClipping(FLOAT2D *, FLOAT2D *);
 float DotProduct(FLOAT3D, FLOAT3D);
 
 //²æ»ý
-//TODO
-
+FLOAT3D CrossProduct(FLOAT3D, FLOAT3D);
 
 //¾ØÕóÏà³Ë
 //3x3½×¾ØÕóÏà³Ë
@@ -82,5 +81,7 @@ void SingleObjectToViewTransform(OBJECT*, MATRIX4);
 MATRIX4 GetViewToHomoMatrix4(CAMERA *);
 
 void SingleObectFromViewToHomoTransform(OBJECT*, MATRIX4);
+
+int TriangleBackCull(FLOAT3D p0, FLOAT3D p1, FLOAT3D p2);
 
 #endif

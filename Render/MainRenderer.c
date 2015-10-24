@@ -21,8 +21,6 @@
 //储存渲染结果的设备上下文
 HDC buffer_dc;
 HBITMAP bmp;
-//删了下面这个
-FLOAT2D p0, p1;
 CAMERA camera;
 
 //创建物体
@@ -30,11 +28,15 @@ CAMERA camera;
 //源自立方体的8个顶点
 OBJECT CubePoints;
 
+//预先声明
+void DrawModelListIndex(FLOAT3D *, int *);
+void DrawLine_Algo01(FLOAT2D, FLOAT2D);
+
 //测试用
 void FunctionTest()
 {
+	InitCamera(&camera, 150, 200, -300, 20, -20, 0, 10, 500, 90, 90);
 	InitObject(&CubePoints, 0, 0, 0, 0, 0, 0);
-	InitCamera(&camera, 200, 150, -600, 0, -10, 0, 50, 1024, 90, 90);
 
 	//生成世界至视口矩阵
 	MATRIX4 WorldToView = { 0 };
@@ -64,6 +66,47 @@ void FunctionTest()
 ///////////
 //画线算法//
 ///////////
+
+void DrawModelListIndex(FLOAT3D *vertexList, int *listIndex)
+{
+	FLOAT2D p0, p1, p2;
+	FLOAT3D a, b, c;
+	int index = 0;
+	while (listIndex[index] != -1)
+	{
+		p0.x = vertexList[listIndex[index]].x;
+		p0.y = vertexList[listIndex[index]].y;
+
+		p1.x = vertexList[listIndex[index + 1]].x;
+		p1.y = vertexList[listIndex[index + 1]].y;
+
+		p2.x = vertexList[listIndex[index + 2]].x;
+		p2.y = vertexList[listIndex[index + 2]].y;
+
+		a.x = vertexList[listIndex[index]].x;
+		a.y = vertexList[listIndex[index]].y;
+		a.z = vertexList[listIndex[index]].z;
+
+		b.x = vertexList[listIndex[index + 1]].x;
+		b.y = vertexList[listIndex[index + 1]].y;
+		b.z = vertexList[listIndex[index + 1]].z;
+
+		c.x = vertexList[listIndex[index + 2]].x;
+		c.y = vertexList[listIndex[index + 2]].y;
+		c.z = vertexList[listIndex[index + 2]].z;
+
+		index += 3;
+
+		if (TriangleBackCull(a,b,c))
+		{
+			continue;
+		}
+		
+		DrawLine_Algo01(p0, p1);
+		DrawLine_Algo01(p1, p2);
+		DrawLine_Algo01(p0, p2);
+	}
+}
 
 //布雷森汉姆直线算法
 void DrawLine_Algo01(FLOAT2D p0, FLOAT2D p1)
@@ -97,11 +140,11 @@ void DrawLine_Algo01(FLOAT2D p0, FLOAT2D p1)
 	for (int i = (int)p0.x; i <= p1.x; i++) {
 		if (steep)
 		{
-			SetPixel(buffer_dc, painter_y, RENDER_Y - i, BLACKCOLOR);
+			SetPixel(buffer_dc, painter_y, RENDER_Y - 1 - i, BLACKCOLOR);
 		}
 		else
 		{
-			SetPixel(buffer_dc, i, RENDER_Y - painter_y, BLACKCOLOR);
+			SetPixel(buffer_dc, i, RENDER_Y - 1 - painter_y, BLACKCOLOR);
 		}
 		err -= dy;
 		if (err < 0) {
@@ -139,82 +182,10 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		{
 			//重新用白色覆盖memory Device Contexts
 			FillRect(buffer_dc, &rect, CreateSolidBrush(BGCOLOR));
-
 			//TODO
 			//三维空间画点
 			FunctionTest();
-
-			p0.x = CubePoints.model.vertexList[0].x;
-			p0.y = CubePoints.model.vertexList[0].y;
-			p1.x = CubePoints.model.vertexList[1].x;
-			p1.y = CubePoints.model.vertexList[1].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertexList[1].x;
-			p0.y = CubePoints.model.vertexList[1].y;
-			p1.x = CubePoints.model.vertexList[2].x;
-			p1.y = CubePoints.model.vertexList[2].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertexList[2].x;
-			p0.y = CubePoints.model.vertexList[2].y;
-			p1.x = CubePoints.model.vertexList[3].x;
-			p1.y = CubePoints.model.vertexList[3].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertexList[3].x;
-			p0.y = CubePoints.model.vertexList[3].y;
-			p1.x = CubePoints.model.vertexList[0].x;
-			p1.y = CubePoints.model.vertexList[0].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertexList[0].x;
-			p0.y = CubePoints.model.vertexList[0].y;
-			p1.x = CubePoints.model.vertexList[4].x;
-			p1.y = CubePoints.model.vertexList[4].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertexList[1].x;
-			p0.y = CubePoints.model.vertexList[1].y;
-			p1.x = CubePoints.model.vertexList[5].x;
-			p1.y = CubePoints.model.vertexList[5].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertexList[2].x;
-			p0.y = CubePoints.model.vertexList[2].y;
-			p1.x = CubePoints.model.vertexList[6].x;
-			p1.y = CubePoints.model.vertexList[6].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertexList[3].x;
-			p0.y = CubePoints.model.vertexList[3].y;
-			p1.x = CubePoints.model.vertexList[7].x;
-			p1.y = CubePoints.model.vertexList[7].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertexList[4].x;
-			p0.y = CubePoints.model.vertexList[4].y;
-			p1.x = CubePoints.model.vertexList[5].x;
-			p1.y = CubePoints.model.vertexList[5].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertexList[5].x;
-			p0.y = CubePoints.model.vertexList[5].y;
-			p1.x = CubePoints.model.vertexList[6].x;
-			p1.y = CubePoints.model.vertexList[6].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertexList[6].x;
-			p0.y = CubePoints.model.vertexList[6].y;
-			p1.x = CubePoints.model.vertexList[7].x;
-			p1.y = CubePoints.model.vertexList[7].y;
-			DrawLine_Algo01(p0, p1);
-
-			p0.x = CubePoints.model.vertexList[4].x;
-			p0.y = CubePoints.model.vertexList[4].y;
-			p1.x = CubePoints.model.vertexList[7].x;
-			p1.y = CubePoints.model.vertexList[7].y;
-			DrawLine_Algo01(p0, p1);
+			DrawModelListIndex(CubePoints.model.vertexList, CubePoints.model.verterListIndex);
 
 			//强制重绘整个窗口
 			BitBlt(GetDC(hWnd), 0, 0, RENDER_X, RENDER_Y, buffer_dc, 0, 0, SRCCOPY);
@@ -256,7 +227,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 	RegisterClassEx(&wnd);
 
 	HWND hWnd = CreateWindowEx(WS_EX_CLIENTEDGE, Name, TEXT("Render Output"), 
-		WS_OVERLAPPEDWINDOW, 0, 0, WINDOW_X, WINDOW_Y, NULL, NULL, hInstance, NULL);
+		WS_OVERLAPPEDWINDOW, 100, 50, WINDOW_X, WINDOW_Y, NULL, NULL, hInstance, NULL);
 
 	if (!hWnd) {
 		return 0;

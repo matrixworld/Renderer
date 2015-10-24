@@ -88,7 +88,7 @@ void InitModelWithCube22(MODEL *input)
 	//三角形索引表
 	for (int lop = 0; lop < 40; lop++)
 	{
-		input->verterListIndex[lop] = 0;
+		input->verterListIndex[lop] = -1;
 	}
 	input->verterListIndex[0] = 0;
 	input->verterListIndex[1] = 2;
@@ -150,7 +150,6 @@ void DeleteModel(MODEL *input)
 void InitObject(OBJECT *object, float x, float y, float z, float i, float j, float k)
 {
 	InitModelWithCube22(&object->model);
-
 
 	object->position.x = x;
 	object->position.y = y;

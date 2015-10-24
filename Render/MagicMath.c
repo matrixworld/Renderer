@@ -53,7 +53,14 @@ float DotProduct(FLOAT3D a, FLOAT3D b)
 	return a.x*b.x + a.y*b.y + a.z*b.z;
 }
 
-//FLOAT3D CrossProduct()
+FLOAT3D CrossProduct(FLOAT3D a, FLOAT3D b)
+{
+	FLOAT3D output;
+	output.x = a.y*b.z - a.z*b.y;
+	output.y = a.z*b.x - a.x*b.z;
+	output.z = a.x*b.y - a.y*b.x;
+	return output;
+}
 
 MATRIX3 MatrixMul3(MATRIX3 a, MATRIX3 b)
 {
@@ -323,16 +330,18 @@ MATRIX4 GetViewToHomoMatrix4(CAMERA *camera)
 
 	float l, r, t, b;
 
-	t = camera->NearZ*tanf(camera->FOVH / 2.0f*0.01745f);
+	t = camera->NearZ*tanf(camera->FOVH *0.01745f / 2.0f);
 	b = -t;
-	r = camera->NearZ*tanf(camera->FOVV / 2.0f*0.01745f);
+	r = camera->NearZ*tanf(camera->FOVV *0.01745f / 2.0f);
 	l = -r;
 
 	hMatrix4.var[0][0] = (2 * camera->NearZ) / (r - l);
 	hMatrix4.var[1][1] = (2 * camera->NearZ) / (t - b);
 	//hMatrix4.var[2][0] = (r + l) / (r - l);
 	//hMatrix4.var[2][1] = (t + b) / (t - b);
-	hMatrix4.var[2][2] = -(camera->FarZ + camera->NearZ) / (camera->FarZ - camera->NearZ);
+	//TODO
+	//这里要验证一下
+	hMatrix4.var[2][2] = (camera->FarZ + camera->NearZ) / (camera->FarZ - camera->NearZ);
 	hMatrix4.var[2][3] = 1.0f;
 	hMatrix4.var[3][2] = -(2.0f*camera->NearZ*camera->FarZ) / (camera->FarZ - camera->NearZ);
 
@@ -353,4 +362,25 @@ void SingleObectFromViewToHomoTransform(OBJECT *object, MATRIX4 VTH)
 		object->model.vertexList[lop].y /= z;
 		object->model.vertexList[lop].z /= z;
 	}
+}
+
+int TriangleBackCull(FLOAT3D p0, FLOAT3D p1, FLOAT3D p2)
+{
+	//p1->p0
+	//p1->p2
+	FLOAT3D view = { 0.0f,0.0f,1.0f };
+	FLOAT3D a, b;
+	a.x = p0.x - p1.x;
+	a.y = p0.y - p1.y;
+	a.z = p0.z - p1.z;
+
+	b.x = p2.x - p1.x;
+	b.y = p2.y - p1.y;
+	b.z = p2.z - p1.z;
+
+	if (DotProduct(view, CrossProduct(a, b)) <= 0)
+	{
+		return 1;
+	}
+	return 0;
 }
