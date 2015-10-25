@@ -25,24 +25,23 @@ HDC buffer_dc;
 HBITMAP bmp;
 
 CAMERA camera;
-OBJECT CubePoints;
+OBJECT CubePoints,cube2,cube3;
 
 //预先声明
 void DrawModelListIndex(FLOAT3D *, int *);
 void DrawLine_Algo01(FLOAT2D, FLOAT2D);
 
 //测试用
-void Render()
+void Render(OBJECT *object)
 {
-	OBJECT object = CubePoints;
-	InitModelWithCube22(&object.model);
+	InitModelWithCube22(&object->model);
 	CAMERA camera_tmp = camera;
 	//生成世界至视口矩阵
 	MATRIX4 WorldToView = { 0 };
 	Matrix4SetZero(&WorldToView);
 	WorldToView = GetWorldToViewMatrix4(&camera_tmp);
 	//将所有物体转至视口坐标系
-	SingleObjectToViewTransform(&object, WorldToView);
+	SingleObjectToViewTransform(object, WorldToView);
 
 	//生成视口到齐次剪裁空间
 	MATRIX4 ViewToHomo = { 0 };
@@ -50,15 +49,15 @@ void Render()
 	ViewToHomo = GetViewToHomoMatrix4(&camera_tmp);
 
 	//对视口坐标下的物体进行变换
-	SingleObectFromViewToHomoTransform(&object, ViewToHomo);
+	SingleObectFromViewToHomoTransform(object, ViewToHomo);
 
 
-	for (int lop = 0; lop < object.model.vertexNum; lop++)
+	for (int lop = 0; lop < object->model.vertexNum; lop++)
 	{
-		object.model.vertexList[lop].x = (object.model.vertexList[lop].x + 1.0f)*camera_tmp.aspect * 170;
-		object.model.vertexList[lop].y = (object.model.vertexList[lop].y + 1.0f) * 170;
+		object->model.vertexList[lop].x = (object->model.vertexList[lop].x + 1.0f)*camera_tmp.aspect * 170;
+		object->model.vertexList[lop].y = (object->model.vertexList[lop].y + 1.0f) * 170;
 	}
-	DrawModelListIndex(object.model.vertexList, object.model.verterListIndex);
+	DrawModelListIndex(object->model.vertexList, object->model.verterListIndex);
 }
 
 ///////////
@@ -158,8 +157,10 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		FillRect(buffer_dc, &rect, CreateSolidBrush(BGCOLOR));
 
 		//初始化世界物体及摄像机
-		InitCamera(&camera, 200, 200, -200, 50, -45, 0, 10, 700, 70, 1.77f);
+		InitCamera(&camera, 200, 200, -200, 0, 0, 0, 10, 700, 70, 1.77f);
 		InitObject(&CubePoints, 0, 0, 0, 0, 0, 0);
+		InitObject(&cube2, 200, 0, 200, 0, 0, 0);
+		InitObject(&cube3, 400, 0, 400, 0, 0, 0);
 
 		break;
 	//窗口重绘时
@@ -171,18 +172,6 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		screen_keys[wParam & 511] = 1;
 		if (wParam == VK_ESCAPE) {
 			PostQuitMessage(0);
-		}
-		//响应键盘F5按键
-		if (wParam == VK_F5)
-		{
-			//重新用白色覆盖memory Device Contexts
-			FillRect(buffer_dc, &rect, CreateSolidBrush(BGCOLOR));
-			//TODO
-			//三维空间画点
-			Render();
-
-			//强制重绘整个窗口
-			BitBlt(GetDC(hWnd), 0, 0, RENDER_X, RENDER_Y, buffer_dc, 0, 0, SRCCOPY);
 		}
 		break;
 	case WM_KEYUP:
@@ -266,7 +255,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 		if (screen_keys[VK_RIGHT]) { camera.rotation.y += 1; }
 
 		FillRect(buffer_dc, &rect, CreateSolidBrush(BGCOLOR));
-		Render();
+		Render(&CubePoints);
+		Render(&cube2);
+		Render(&cube3);
+
 		//强制重绘整个窗口
 		BitBlt(GetDC(hWnd), 0, 0, RENDER_X, RENDER_Y, buffer_dc, 0, 0, SRCCOPY);
 		Sleep(10);

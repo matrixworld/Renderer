@@ -278,21 +278,7 @@ MATRIX4 InvertMatrix4(MATRIX4 input)
 
 MATRIX4 GetWorldToViewMatrix4(CAMERA *camera)
 {
-	MATRIX4 WTV;
-	WTV = InvertMatrix4(MatrixMul4(Rotation(camera->rotation), Transition(camera->POS)));
-
-	MATRIX4 hMatrix4 = { 0.0f };
-	Matrix4SetZero(&hMatrix4);
-
-	camera->POS.x = 0.0f;
-	camera->POS.y = 0.0f;
-	camera->POS.z = 0.0f;
-
-	camera->rotation.x = 0.0f;
-	camera->rotation.y = 0.0f;
-	camera->rotation.z = 0.0f;
-
-	return WTV;
+	return InvertMatrix4(MatrixMul4(Rotation(camera->rotation), Transition(camera->POS)));
 }
 
 //将物体的矩阵和摄像机的逆矩阵乘起来
@@ -312,15 +298,6 @@ void SingleObjectToViewTransform(OBJECT* object, MATRIX4 WTV)
 	{
 		VectorTransform(&object->model.vertexList[lop], ObjectToViewMatrix4);
 	}
-
-	//模型的中心被改变
-	object->position.x = 0.0f;
-	object->position.y = 0.0f;
-	object->position.z = 0.0f;
-
-	object->rotation.x = 0.0f;
-	object->rotation.y = 0.0f;
-	object->rotation.z = 0.0f;
 }
 
 MATRIX4 GetViewToHomoMatrix4(CAMERA *camera)
