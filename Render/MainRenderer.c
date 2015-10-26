@@ -39,6 +39,35 @@ void RenderFrame();
 //函数定义//
 //////////
 
+void CameraControl()
+{
+	if (screen_keys[VK_UP]) { camera.rotation.x -= 1; }
+	if (screen_keys[VK_DOWN]) { camera.rotation.x += 1; }
+	if (screen_keys[VK_LEFT]) { camera.rotation.y -= 1; }
+	if (screen_keys[VK_RIGHT]) { camera.rotation.y += 1; }
+
+	//操作部分
+	if (screen_keys['W'] || screen_keys['A'] || screen_keys['S'] || screen_keys['D'])
+	{
+		FLOAT3D MovingDirection = { 0.0f ,0.0f,0.0f };
+		if (screen_keys['A']) { MovingDirection.x += -1.0f; }
+		if (screen_keys['D']) { MovingDirection.x += 1.0f; }
+		if (screen_keys['W']) { MovingDirection.z += 1.0f; }
+		if (screen_keys['S']) { MovingDirection.z += -1.0f; }
+		MATRIX4 POSMatrix4 = { 0.0f };
+		POSMatrix4 = MatrixMul4(Rotation_SingleAxis('x', camera.rotation.x), Rotation_SingleAxis('y', camera.rotation.y));
+
+		VectorTransform(&MovingDirection, POSMatrix4);
+		VectorUnify(&MovingDirection);
+
+		camera.POS.x += MovingDirection.x*camera.speed;
+		camera.POS.y += MovingDirection.y*camera.speed;
+		camera.POS.z += MovingDirection.z*camera.speed;
+	}
+	if (screen_keys['Q']) { camera.POS.y += camera.speed; return; }
+	if (screen_keys['E']) { camera.POS.y -= camera.speed; return; }
+}
+
 //渲染单个物体
 void Render(OBJECT *object)
 {
@@ -192,7 +221,7 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		FillRect(buffer_dc, &rectRender, CreateSolidBrush(BGCOLOR));
 
 		//初始化世界物体及摄像机
-		InitCamera(&camera, 0, 0, -500, 0, 0, 0, 10, 700, 70, (float)rectRender.right / (float)rectRender.bottom);
+		InitCamera(&camera, 0, 0, -500, 0, 0, 0, 10, 700, 70, (float)rectRender.right / (float)rectRender.bottom, 3.0f);
 		InitObject(&CubePoints[0], 0, 0, 0, 0, 0, 0);
 		InitObject(&CubePoints[1], 200, 0, 200, 0, 0, 0);
 		InitObject(&CubePoints[2], 400, 0, 400, 0, 0, 0);
@@ -289,18 +318,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 			DispatchMessage(&msg);
 		}
 
-		//操作部分
-		if (screen_keys['A']) { camera.POS.x -= 3; }
-		if (screen_keys['D']) { camera.POS.x += 3; }
-		if (screen_keys['W']) { camera.POS.z += 3; }
-		if (screen_keys['S']) { camera.POS.z -= 3; }
-		if (screen_keys['Q']) { camera.POS.y += 3; }
-		if (screen_keys['E']) { camera.POS.y -= 3; }
-
-		if (screen_keys[VK_UP]) { camera.rotation.x -= 1; }
-		if (screen_keys[VK_DOWN]) { camera.rotation.x += 1; }
-		if (screen_keys[VK_LEFT]) { camera.rotation.y -= 1; }
-		if (screen_keys[VK_RIGHT]) { camera.rotation.y += 1; }
+		CameraControl();
 
 		RenderFrame();
 

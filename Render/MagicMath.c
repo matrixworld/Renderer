@@ -99,6 +99,15 @@ MATRIX4 MatrixMul4(MATRIX4 a, MATRIX4 b)
 	return matrix;
 }
 
+void VectorUnify(FLOAT3D *input)
+{
+	float length = input->x * input->x + input->y*input->y + input->z*input->z;
+	length = sqrtf(length);
+	input->x /= length;
+	input->y /= length;
+	input->z /= length;
+}
+
 MATRIX4 Transition(FLOAT3D transition)
 {
 	MATRIX4 matrix_T;

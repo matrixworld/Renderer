@@ -24,6 +24,6 @@ void DeleteModel(MODEL *);
 void InitObject(OBJECT *, float x, float y, float z, float i, float j, float k);
 
 //为摄像机结构体填入数据
-void InitCamera(CAMERA *c, float x, float y, float z, float pitch, float yaw, float roll, float nearz, float farz, int fov,float aspect);
+void InitCamera(CAMERA *c, float x, float y, float z, float pitch, float yaw, float roll, float nearz, float farz, int fov,float aspect,float speed);
 
 #endif

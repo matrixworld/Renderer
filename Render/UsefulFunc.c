@@ -160,7 +160,7 @@ void InitObject(OBJECT *object, float x, float y, float z, float i, float j, flo
 	object->rotation.z = k;
 }
 
-void InitCamera(CAMERA *c, float x, float y, float z, float pitch, float yaw, float roll, float nearz, float farz, int fov,float aspect)
+void InitCamera(CAMERA *c, float x, float y, float z, float pitch, float yaw, float roll, float nearz, float farz, int fov,float aspect,float spd)
 {
 	c->POS.x = x;
 	c->POS.y = y;
@@ -175,4 +175,5 @@ void InitCamera(CAMERA *c, float x, float y, float z, float pitch, float yaw, fl
 
 	c->FOV = fov;
 	c->screenAspect = aspect;
+	c->speed = spd;
 }

@@ -51,6 +51,9 @@ MATRIX3 MatrixMul3(MATRIX3, MATRIX3);
 //4x4阶矩阵相乘
 MATRIX4 MatrixMul4(MATRIX4, MATRIX4);
 
+//将向量单位化
+void VectorUnify(FLOAT3D *input);
+
 //生成平移矩阵
 MATRIX4 Transition(FLOAT3D);
 

@@ -106,6 +106,9 @@ typedef struct _CAMERA
 	int FOV;
 	//屏幕高宽比
 	float screenAspect;
+
+	//摄像机移动速度
+	float speed;
 }CAMERA;
 
 #endif
