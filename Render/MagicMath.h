@@ -36,7 +36,7 @@
 //该函数将直线进行剪裁
 //返回值为0不绘画
 //返回值为1就画线
-int LiangBarskyLineClipping(FLOAT2D *, FLOAT2D *);
+int LiangBarskyLineClipping(FLOAT2D *, FLOAT2D *, int, int);
 
 //三维空间的点积
 //将两个三维矢量算成浮点数并返回
@@ -78,10 +78,13 @@ MATRIX4 GetWorldToViewMatrix4(CAMERA *);
 //将物体的点从物体空间转换到齐次剪裁空间空间
 void SingleObjectToViewTransform(OBJECT*, MATRIX4);
 
+//根据摄像机计算视口到齐次剪裁空间的变换矩阵
 MATRIX4 GetViewToHomoMatrix4(CAMERA *);
 
+//将单个物体从视口转换至齐次剪裁空间
 void SingleObectFromViewToHomoTransform(OBJECT*, MATRIX4);
 
+//对多边形进行背面剔除
 int TriangleBackCull(FLOAT3D p0, FLOAT3D p1, FLOAT3D p2);
 
 #endif

@@ -174,5 +174,5 @@ void InitCamera(CAMERA *c, float x, float y, float z, float pitch, float yaw, fl
 	c->FarZ = farz;
 
 	c->FOV = fov;
-	c->aspect = aspect;
+	c->screenAspect = aspect;
 }

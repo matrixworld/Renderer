@@ -18,17 +18,6 @@ z : Roll
 物体：
 三角形顶点缠绕方向：顺时针 为正面向视点
 **********************/
-
-///////////////////////
-//屏幕大小及渲染空间大小//
-//////////////////////
-
-#define WINDOW_X (600)
-#define WINDOW_Y (600)
-
-#define RENDER_X (600)
-#define RENDER_Y (600)
-
 /////////
 //宏定义//
 /////////
@@ -40,6 +29,9 @@ z : Roll
 //////////////
 //常用数据定义//
 //////////////
+//仅影响窗口刚创建时的位置及大小
+#define RENDER_X (800)
+#define RENDER_Y (600)
 
 //背景颜色 白色
 #define BGCOLOR (RGB(255,255,255))
@@ -110,12 +102,10 @@ typedef struct _CAMERA
 
 	//最近的距离，最远显示的距离
 	float NearZ, FarZ;
-
 	//Field of View
 	int FOV;
-	//高宽比
-	//16:9
-	float aspect;
+	//屏幕高宽比
+	float screenAspect;
 }CAMERA;
 
 #endif

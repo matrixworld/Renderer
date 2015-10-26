@@ -19,19 +19,27 @@
 //////////
 int quit;
 char screen_keys[512];
-RECT rect;
+RECT rectRender;
 //储存渲染结果的设备上下文
 HDC buffer_dc;
 HBITMAP bmp;
 
 CAMERA camera;
-OBJECT CubePoints,cube2,cube3;
+OBJECT CubePoints[3];
 
-//预先声明
+///////////
+//预先声明//
+//////////
+
 void DrawModelListIndex(FLOAT3D *, int *);
 void DrawLine_Algo01(FLOAT2D, FLOAT2D);
+void RenderFrame();
 
-//测试用
+///////////
+//函数定义//
+//////////
+
+//渲染单个物体
 void Render(OBJECT *object)
 {
 	InitModelWithCube22(&object->model);
@@ -51,19 +59,27 @@ void Render(OBJECT *object)
 	//对视口坐标下的物体进行变换
 	SingleObectFromViewToHomoTransform(object, ViewToHomo);
 
-
 	for (int lop = 0; lop < object->model.vertexNum; lop++)
 	{
-		object->model.vertexList[lop].x = (object->model.vertexList[lop].x + 1.0f)*camera_tmp.aspect * 170;
-		object->model.vertexList[lop].y = (object->model.vertexList[lop].y + 1.0f) * 170;
+		object->model.vertexList[lop].x =
+			(object->model.vertexList[lop].x + 1.0f)* rectRender.right / 2.0f;
+		object->model.vertexList[lop].y =
+			(object->model.vertexList[lop].y + 1.0f) * rectRender.bottom / 2.0f;
 	}
 	DrawModelListIndex(object->model.vertexList, object->model.verterListIndex);
 }
 
-///////////
-//画线算法//
-///////////
+//绘画一帧
+void RenderFrame()
+{
+	FillRect(buffer_dc, &rectRender, CreateSolidBrush(BGCOLOR));
 
+	Render(&CubePoints[0]);
+	Render(&CubePoints[1]);
+	Render(&CubePoints[2]);
+}
+
+//画三角形,背面剔除
 void DrawModelListIndex(FLOAT3D *vertexList, int *listIndex)
 {
 	FLOAT2D p0, p1, p2;
@@ -101,7 +117,8 @@ void DrawModelListIndex(FLOAT3D *vertexList, int *listIndex)
 void DrawLine_Algo01(FLOAT2D p0, FLOAT2D p1)
 {
 	//对直线进行剪裁
-	if (!LiangBarskyLineClipping(&p0, &p1)) { return; }
+	//TODO
+	if (!LiangBarskyLineClipping(&p0, &p1, rectRender.right, rectRender.bottom)) { return; }
 	//直线斜率是否大于1
 	BOOL steep = ABS(p1.y - p0.y) > ABS(p1.x - p0.x);
 	//如果大于1
@@ -129,11 +146,11 @@ void DrawLine_Algo01(FLOAT2D p0, FLOAT2D p1)
 	for (int i = (int)p0.x; i <= p1.x; i++) {
 		if (steep)
 		{
-			SetPixel(buffer_dc, painter_y, RENDER_Y - 1 - i, BLACKCOLOR);
+			SetPixel(buffer_dc, painter_y, rectRender.bottom - 1 - i, BLACKCOLOR);
 		}
 		else
 		{
-			SetPixel(buffer_dc, i, RENDER_Y - 1 - painter_y, BLACKCOLOR);
+			SetPixel(buffer_dc, i, rectRender.bottom - 1 - painter_y, BLACKCOLOR);
 		}
 		err -= dy;
 		if (err < 0) {
@@ -143,29 +160,47 @@ void DrawLine_Algo01(FLOAT2D p0, FLOAT2D p1)
 	}
 }
 
-//程序的消息处理函数
+///////////////////
+//程序的消息处理函数//
+//////////////////
 LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (Msg)
 	{
-	//窗口创建时
-	case WM_CREATE:
-		//创建并初始化画布
-		bmp = CreateCompatibleBitmap(GetDC(hWnd),RENDER_X, RENDER_Y);
+	case WM_SIZE:
+		rectRender.right = LOWORD(lParam);
+		rectRender.bottom = HIWORD(lParam);
+		rectRender.left = 0;
+		rectRender.top = 0;
+
+		DeleteDC(buffer_dc);
+		DeleteObject(bmp);
+
+		bmp = CreateCompatibleBitmap(GetDC(hWnd), rectRender.right, rectRender.bottom);
 		buffer_dc = CreateCompatibleDC(GetDC(hWnd));
 		SelectObject(buffer_dc, bmp);
-		FillRect(buffer_dc, &rect, CreateSolidBrush(BGCOLOR));
+
+		camera.screenAspect = (float)rectRender.right / (float)rectRender.bottom;
+
+		FillRect(buffer_dc, &rectRender, CreateSolidBrush(BGCOLOR));
+		break;
+	case WM_CREATE:
+		//创建并初始化画布
+		bmp = CreateCompatibleBitmap(GetDC(hWnd), rectRender.right, rectRender.bottom);
+		buffer_dc = CreateCompatibleDC(GetDC(hWnd));
+		SelectObject(buffer_dc, bmp);
+		FillRect(buffer_dc, &rectRender, CreateSolidBrush(BGCOLOR));
 
 		//初始化世界物体及摄像机
-		InitCamera(&camera, 200, 200, -200, 0, 0, 0, 10, 700, 70, 1.77f);
-		InitObject(&CubePoints, 0, 0, 0, 0, 0, 0);
-		InitObject(&cube2, 200, 0, 200, 0, 0, 0);
-		InitObject(&cube3, 400, 0, 400, 0, 0, 0);
+		InitCamera(&camera, 0, 0, -500, 0, 0, 0, 10, 700, 70, (float)rectRender.right / (float)rectRender.bottom);
+		InitObject(&CubePoints[0], 0, 0, 0, 0, 0, 0);
+		InitObject(&CubePoints[1], 200, 0, 200, 0, 0, 0);
+		InitObject(&CubePoints[2], 400, 0, 400, 0, 0, 0);
 
 		break;
 	//窗口重绘时
 	case WM_PAINT:
-		BitBlt(GetDC(hWnd), 0, 0, RENDER_X, RENDER_Y, buffer_dc, 0, 0, SRCCOPY);
+		BitBlt(GetDC(hWnd), 0, 0, rectRender.right, rectRender.bottom, buffer_dc, 0, 0, SRCCOPY);
 		break;
 	//有键被按下时
 	case WM_KEYDOWN:
@@ -180,7 +215,9 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		quit = 1;
 		//销毁模型！！！
-		DeleteModel(&CubePoints.model);
+		DeleteModel(&CubePoints[0].model);
+		DeleteModel(&CubePoints[1].model);
+		DeleteModel(&CubePoints[2].model);
 
 		DeleteDC(buffer_dc);
 		DeleteObject(bmp);
@@ -193,10 +230,15 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, Msg, wParam, lParam);
 }
 
+/////////
+//主函数//
+/////////
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int nShowCmd)
 {
+	int WINDOW_X = GetSystemMetrics(SM_CXSCREEN);
+	int WINDOW_Y = GetSystemMetrics(SM_CYSCREEN);
 	//全局变量赋值
-	rect.top = 0; rect.left = 0; rect.bottom = RENDER_Y; rect.right = RENDER_X;
+	rectRender.top = 0; rectRender.left = 0; rectRender.bottom = RENDER_Y; rectRender.right = RENDER_X;
 	quit = 0;
 	for (int lop = 0; lop < 512; lop++)
 	{
@@ -220,9 +262,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 
 	RegisterClassEx(&wnd);
 
+	//计算实际窗口大小，算上边框和标题栏
+	AdjustWindowRectEx(&rectRender, WS_OVERLAPPEDWINDOW, 0, WS_EX_CLIENTEDGE);
 	HWND hWnd = CreateWindowEx(WS_EX_CLIENTEDGE, Name, TEXT("Render"),
-		WS_OVERLAPPEDWINDOW, 100, 50, WINDOW_X, WINDOW_Y, NULL, NULL, hInstance, NULL);
-
+		WS_OVERLAPPEDWINDOW, (WINDOW_X - rectRender.right + rectRender.left) / 2, (WINDOW_Y - rectRender.bottom + rectRender.top) / 2,
+		rectRender.right - rectRender.left, rectRender.bottom - rectRender.top, NULL, NULL, hInstance, NULL);
+	rectRender.top = 0; rectRender.left = 0; rectRender.bottom = RENDER_Y; rectRender.right = RENDER_X;
 	if (!hWnd) {
 		return 0;
 	}
@@ -231,6 +276,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 	UpdateWindow(hWnd);
 
 	MSG msg;
+	//消息循环部分
+	//响应用户操作
 	while (!screen_keys[VK_ESCAPE] && !quit) 
 	{
 		//没消息就会跳出
@@ -242,6 +289,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 			DispatchMessage(&msg);
 		}
 
+		//操作部分
 		if (screen_keys['A']) { camera.POS.x -= 3; }
 		if (screen_keys['D']) { camera.POS.x += 3; }
 		if (screen_keys['W']) { camera.POS.z += 3; }
@@ -254,15 +302,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 		if (screen_keys[VK_LEFT]) { camera.rotation.y -= 1; }
 		if (screen_keys[VK_RIGHT]) { camera.rotation.y += 1; }
 
-		FillRect(buffer_dc, &rect, CreateSolidBrush(BGCOLOR));
-		Render(&CubePoints);
-		Render(&cube2);
-		Render(&cube3);
+		RenderFrame();
 
 		//强制重绘整个窗口
-		BitBlt(GetDC(hWnd), 0, 0, RENDER_X, RENDER_Y, buffer_dc, 0, 0, SRCCOPY);
+		BitBlt(GetDC(hWnd), 0, 0, rectRender.right, rectRender.bottom, buffer_dc, 0, 0, SRCCOPY);
 		Sleep(10);
-
 	}
 	return msg.message;
 }

@@ -1,10 +1,10 @@
 #include "MagicMath.h"
 
-int LiangBarskyLineClipping(FLOAT2D *p0, FLOAT2D *p1)
+int LiangBarskyLineClipping(FLOAT2D *p0, FLOAT2D *p1,int eRight,int eTop)
 {
 	float t0 = 0.0f, t1 = 1.0f;
 	//规定剪裁的边界
-	float edgeLeft = 0.0f, edgeRight = (float)RENDER_X, edgeTop = (float)RENDER_Y, edgeBottom = 0.0f;
+	float edgeLeft = 0.0f, edgeRight = (float)eRight, edgeTop = (float)eTop, edgeBottom = 0.0f;
 	float x0 = p0->x, y0 = p0->y, x1 = p1->x, y1 = p1->y;
 	float dx = x1 - x0;
 	float dy = y1 - y0;
@@ -309,7 +309,7 @@ MATRIX4 GetViewToHomoMatrix4(CAMERA *camera)
 
 	r = camera->NearZ*tanf(camera->FOV *0.01745f / 2.0f);
 	l = -r;
-	t = r / camera->aspect;
+	t = r / camera->screenAspect;
 	b = -t;
 
 	hMatrix4.var[0][0] = (2 * camera->NearZ) / (r - l);
