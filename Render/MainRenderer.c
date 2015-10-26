@@ -50,10 +50,10 @@ void CameraControl()
 	if (screen_keys['W'] || screen_keys['A'] || screen_keys['S'] || screen_keys['D'])
 	{
 		FLOAT3D MovingDirection = { 0.0f ,0.0f,0.0f };
-		if (screen_keys['A']) { MovingDirection.x += -1.0f; }
-		if (screen_keys['D']) { MovingDirection.x += 1.0f; }
-		if (screen_keys['W']) { MovingDirection.z += 1.0f; }
-		if (screen_keys['S']) { MovingDirection.z += -1.0f; }
+		if (screen_keys['A']) { MovingDirection.x = -1.0f; }
+		if (screen_keys['D']) { MovingDirection.x = 1.0f; }
+		if (screen_keys['W']) { MovingDirection.z = 1.0f; }
+		if (screen_keys['S']) { MovingDirection.z = -1.0f; }
 		MATRIX4 POSMatrix4 = { 0.0f };
 		POSMatrix4 = MatrixMul4(Rotation_SingleAxis('x', camera.rotation.x), Rotation_SingleAxis('y', camera.rotation.y));
 
