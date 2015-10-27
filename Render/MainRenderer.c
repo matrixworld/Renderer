@@ -17,15 +17,27 @@
 ///////////
 //全局变量//
 //////////
+//是否锁定鼠标
+int centerCursor;
+//是否退出
 int quit;
 char screen_keys[512];
+//渲染区域（客户坐标系）
 RECT rectRender;
+//储存指针位置
+//相对客户坐标系
+POINT cursor;
 //储存渲染结果的设备上下文
 HDC buffer_dc;
 HBITMAP bmp;
 
 CAMERA camera;
 OBJECT CubePoints[3];
+
+////////////////////
+//被大量重复创建的变量//
+////////////////////
+POINT cursorRectModifi;
 
 ///////////
 //预先声明//
@@ -39,8 +51,19 @@ void RenderFrame();
 //函数定义//
 //////////
 
-void CameraControl()
+void CameraControl(HWND hWnd)
 {
+	if (centerCursor)
+	{
+		GetCursorPos(&cursorRectModifi);
+		cursorRectModifi.x -= cursor.x;
+		cursorRectModifi.y -= cursor.y;
+		//上下
+		camera.rotation.x += (float)cursorRectModifi.y / 15.0f;
+		//左右
+		camera.rotation.y += (float)cursorRectModifi.x / 20.0f;
+	}
+
 	if (screen_keys[VK_UP]) { camera.rotation.x -= 1; }
 	if (screen_keys[VK_DOWN]) { camera.rotation.x += 1; }
 	if (screen_keys[VK_LEFT]) { camera.rotation.y -= 1; }
@@ -175,11 +198,11 @@ void DrawLine_Algo01(FLOAT2D p0, FLOAT2D p1)
 	for (int i = (int)p0.x; i <= p1.x; i++) {
 		if (steep)
 		{
-			SetPixel(buffer_dc, painter_y, rectRender.bottom - 1 - i, BLACKCOLOR);
+			SetPixel(buffer_dc, painter_y, rectRender.bottom  - i, BLACKCOLOR);
 		}
 		else
 		{
-			SetPixel(buffer_dc, i, rectRender.bottom - 1 - painter_y, BLACKCOLOR);
+			SetPixel(buffer_dc, i, rectRender.bottom - painter_y, BLACKCOLOR);
 		}
 		err -= dy;
 		if (err < 0) {
@@ -196,6 +219,14 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (Msg)
 	{
+	case WM_RBUTTONDOWN:
+		SetCursorPos(cursor.x, cursor.y);
+		centerCursor = !centerCursor;
+		if (centerCursor)
+			ShowCursor(FALSE);
+		else
+			ShowCursor(TRUE);
+		break;
 	case WM_SIZE:
 		rectRender.right = LOWORD(lParam);
 		rectRender.bottom = HIWORD(lParam);
@@ -212,8 +243,13 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		camera.screenAspect = (float)rectRender.right / (float)rectRender.bottom;
 
 		FillRect(buffer_dc, &rectRender, CreateSolidBrush(BGCOLOR));
+
+		cursor.x = rectRender.right / 2;
+		cursor.y = rectRender.bottom / 2;
+		ClientToScreen(hWnd, &cursor);
 		break;
 	case WM_CREATE:
+		//ShowCursor(FALSE);
 		//创建并初始化画布
 		bmp = CreateCompatibleBitmap(GetDC(hWnd), rectRender.right, rectRender.bottom);
 		buffer_dc = CreateCompatibleDC(GetDC(hWnd));
@@ -236,6 +272,10 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		screen_keys[wParam & 511] = 1;
 		if (wParam == VK_ESCAPE) {
 			PostQuitMessage(0);
+		}
+		if (wParam == VK_F1)
+		{
+			;
 		}
 		break;
 	case WM_KEYUP:
@@ -268,6 +308,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 	int WINDOW_Y = GetSystemMetrics(SM_CYSCREEN);
 	//全局变量赋值
 	rectRender.top = 0; rectRender.left = 0; rectRender.bottom = RENDER_Y; rectRender.right = RENDER_X;
+	centerCursor = 0;
 	quit = 0;
 	for (int lop = 0; lop < 512; lop++)
 	{
@@ -280,7 +321,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 	wnd.cbSize = sizeof(WNDCLASSEX);
 	wnd.cbWndExtra = 0;
 	wnd.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-	wnd.hCursor = NULL;
+	wnd.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wnd.hIcon = NULL;
 	wnd.hIconSm = NULL;
 	wnd.hInstance = hInstance;
@@ -318,13 +359,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 			DispatchMessage(&msg);
 		}
 
-		CameraControl();
+		CameraControl(hWnd);
 
 		RenderFrame();
 
 		//强制重绘整个窗口
 		BitBlt(GetDC(hWnd), 0, 0, rectRender.right, rectRender.bottom, buffer_dc, 0, 0, SRCCOPY);
-		Sleep(10);
+		if (centerCursor)
+		{
+			SetCursorPos(cursor.x, cursor.y);
+		}
+		Sleep(5);
 	}
 	return msg.message;
 }
