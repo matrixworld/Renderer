@@ -1,0 +1,50 @@
+
+//Funcs below belong to RenderFrame
+CAMERA camera_tmp = camera;
+InitModelWithCube22(&object->model);
+
+//布雷森汉姆直线算法
+void DrawLine_Algo01(FLOAT2D p0, FLOAT2D p1)
+{
+	//对直线进行剪裁
+	if (!LiangBarskyLineClipping(&p0, &p1, rectRender.right, rectRender.bottom)) { return; }
+	//直线斜率是否大于1
+	BOOL steep = ABS(p1.y - p0.y) > ABS(p1.x - p0.x);
+	//如果大于1
+	//将直线沿 y=x 翻转输出
+	if (steep)
+	{
+		swap(&p0.x, &p0.y);
+		swap(&p1.x, &p1.y);
+	}
+	if (p0.x > p1.x)
+	{
+		swap(&p0.x, &p1.x);
+		swap(&p0.y, &p1.y);
+	}
+	int dx = (int)(p1.x - p0.x);
+	int dy = (int)ABS(p1.y - p0.y);
+
+	int err = dx / 2;
+
+	//y的增量
+	int ystep = (p0.y < p1.y) ? 1 : -1;
+	//用于绘画的 y 数值
+	int painter_y = (int)p0.y;
+
+	for (int i = (int)p0.x; i <= p1.x; i++) {
+		if (steep)
+		{
+			SetPixel(buffer_dc, painter_y, rectRender.bottom  - i, BLACKCOLOR);
+		}
+		else
+		{
+			SetPixel(buffer_dc, i, rectRender.bottom - painter_y, BLACKCOLOR);
+		}
+		err -= dy;
+		if (err < 0) {
+			painter_y += ystep;
+			err += dx;
+		}
+	}
+}

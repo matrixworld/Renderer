@@ -32,26 +32,31 @@ HDC buffer_dc;
 HBITMAP bmp;
 
 CAMERA camera;
-OBJECT CubePoints[3];
+OBJECT Triangle;
 
 ////////////////////
 //被大量重复创建的变量//
 ////////////////////
+//鼠标指针在delta时间内移动的距离
 POINT cursorRectModifi;
 
 ///////////
 //预先声明//
 //////////
-
+//在世界中移动摄像机
+void CameraControl();
+//渲染完整的一帧
+void RenderFrame(OBJECT *, int);
+//根据点的索引表顺序绘画三角形
 void DrawModelListIndex(FLOAT3D *, int *);
-void DrawLine_Algo01(FLOAT2D, FLOAT2D);
-void RenderFrame();
+//TODO
+//填充三角形
+void FillTriangle(FLOAT3D, FLOAT3D, FLOAT3D);
 
 ///////////
 //函数定义//
 //////////
-
-void CameraControl(HWND hWnd)
+void CameraControl()
 {
 	if (centerCursor)
 	{
@@ -59,15 +64,22 @@ void CameraControl(HWND hWnd)
 		cursorRectModifi.x -= cursor.x;
 		cursorRectModifi.y -= cursor.y;
 		//上下
+		// -90 <-> 90
 		camera.rotation.x += (float)cursorRectModifi.y / 15.0f;
 		//左右
-		camera.rotation.y += (float)cursorRectModifi.x / 20.0f;
+		// -180 <-> 180
+		camera.rotation.y += (float)cursorRectModifi.x / 15.0f;
 	}
 
-	if (screen_keys[VK_UP]) { camera.rotation.x -= 1; }
-	if (screen_keys[VK_DOWN]) { camera.rotation.x += 1; }
-	if (screen_keys[VK_LEFT]) { camera.rotation.y -= 1; }
-	if (screen_keys[VK_RIGHT]) { camera.rotation.y += 1; }
+	if (screen_keys[VK_UP]) { camera.rotation.x -= 2; }
+	if (screen_keys[VK_DOWN]) { camera.rotation.x += 2; }
+	if (screen_keys[VK_LEFT]) { camera.rotation.y -= 2; }
+	if (screen_keys[VK_RIGHT]) { camera.rotation.y += 2; }
+
+	if (camera.rotation.x < -90.0f) { camera.rotation.x = -90.0f; }
+	if (camera.rotation.x > 90.0f) { camera.rotation.x = 90.0f; }
+	if (camera.rotation.y < -180.0f) { camera.rotation.y += 360.0f; }
+	if (camera.rotation.y > 180.0f) { camera.rotation.y -= 360.0f; }
 
 	//操作部分
 	if (screen_keys['W'] || screen_keys['A'] || screen_keys['S'] || screen_keys['D'])
@@ -80,7 +92,7 @@ void CameraControl(HWND hWnd)
 		MATRIX4 POSMatrix4 = { 0.0f };
 		POSMatrix4 = MatrixMul4(Rotation_SingleAxis('x', camera.rotation.x), Rotation_SingleAxis('y', camera.rotation.y));
 
-		VectorTransform(&MovingDirection, POSMatrix4);
+		VectorTransform(MovingDirection, &MovingDirection, POSMatrix4);
 		VectorUnify(&MovingDirection);
 
 		camera.POS.x += MovingDirection.x*camera.speed;
@@ -91,123 +103,102 @@ void CameraControl(HWND hWnd)
 	if (screen_keys['E']) { camera.POS.y -= camera.speed; return; }
 }
 
-//渲染单个物体
-void Render(OBJECT *object)
+void RenderFrame(OBJECT* objectList, int ObjectTotalNum)
 {
-	InitModelWithCube22(&object->model);
-	CAMERA camera_tmp = camera;
-	//生成世界至视口矩阵
-	MATRIX4 WorldToView = { 0 };
-	Matrix4SetZero(&WorldToView);
-	WorldToView = GetWorldToViewMatrix4(&camera_tmp);
-	//将所有物体转至视口坐标系
-	SingleObjectToViewTransform(object, WorldToView);
-
-	//生成视口到齐次剪裁空间
-	MATRIX4 ViewToHomo = { 0 };
-	Matrix4SetZero(&ViewToHomo);
-	ViewToHomo = GetViewToHomoMatrix4(&camera_tmp);
-
-	//对视口坐标下的物体进行变换
-	SingleObectFromViewToHomoTransform(object, ViewToHomo);
-
-	for (int lop = 0; lop < object->model.vertexNum; lop++)
-	{
-		object->model.vertexList[lop].x =
-			(object->model.vertexList[lop].x + 1.0f)* rectRender.right / 2.0f;
-		object->model.vertexList[lop].y =
-			(object->model.vertexList[lop].y + 1.0f) * rectRender.bottom / 2.0f;
-	}
-	DrawModelListIndex(object->model.vertexList, object->model.verterListIndex);
-}
-
-//绘画一帧
-void RenderFrame()
-{
+	//清空背景
 	FillRect(buffer_dc, &rectRender, CreateSolidBrush(BGCOLOR));
+	//生成世界到视口矩阵
+	//所有的物体的点都要乘以该矩阵
+	MATRIX4 WorldToView = GetWorldToViewMatrix4(camera);
+	//生成视口到齐次剪裁空间
+	MATRIX4 ViewToHomo = GetViewToHomoMatrix4(camera);
 
-	Render(&CubePoints[0]);
-	Render(&CubePoints[1]);
-	Render(&CubePoints[2]);
+	FLOAT3D *SingleObjectTmpVertexes;
+	for (int lop = 0; lop < ObjectTotalNum; lop++)
+	{
+		SingleObjectTmpVertexes = SingleObjectLocalToHomo(objectList[lop], WorldToView, ViewToHomo);
+
+		//将所有点转换到屏幕的二维坐标系
+		for (int lop2 = 0; lop2 < objectList[lop].model.vertexNum; lop2++)
+		{
+			SingleObjectTmpVertexes[lop2].x =
+				(SingleObjectTmpVertexes[lop2].x + 1.0f)* rectRender.right / 2.0f;
+			SingleObjectTmpVertexes[lop2].y =
+				(SingleObjectTmpVertexes[lop2].y + 1.0f) * rectRender.bottom / 2.0f;
+		}
+		//画出点和线
+		DrawModelListIndex(SingleObjectTmpVertexes, objectList[lop].model.vertexListIndex);
+
+		free(SingleObjectTmpVertexes);
+		SingleObjectTmpVertexes = NULL;
+	}
 }
 
-//画三角形,背面剔除
 void DrawModelListIndex(FLOAT3D *vertexList, int *listIndex)
 {
-	FLOAT2D p0, p1, p2;
 	FLOAT3D a, b, c;
 	int index = 0;
-	while (listIndex[index] != -1)
+	for (index = 0; listIndex[index] != -1; index += 3)
 	{
-		a.x = p0.x = vertexList[listIndex[index]].x;
-		a.y = p0.y = vertexList[listIndex[index]].y;
+		if (listIndex[index] == -2)
+		{
+			continue;
+		}
+		a.x = vertexList[listIndex[index]].x;
+		a.y = vertexList[listIndex[index]].y;
 
-		b.x = p1.x = vertexList[listIndex[index + 1]].x;
-		b.y = p1.y = vertexList[listIndex[index + 1]].y;
+		b.x = vertexList[listIndex[index + 1]].x;
+		b.y = vertexList[listIndex[index + 1]].y;
 
-		c.x = p2.x = vertexList[listIndex[index + 2]].x;
-		c.y = p2.y = vertexList[listIndex[index + 2]].y;
+		c.x = vertexList[listIndex[index + 2]].x;
+		c.y = vertexList[listIndex[index + 2]].y;
 
 		a.z = vertexList[listIndex[index]].z;
 		b.z = vertexList[listIndex[index + 1]].z;
 		c.z = vertexList[listIndex[index + 2]].z;
-
-		index += 3;
 
 		if (TriangleBackCull(a, b, c))
 		{
 			continue;
 		}
 
-		DrawLine_Algo01(p0, p1);
-		DrawLine_Algo01(p1, p2);
-		DrawLine_Algo01(p0, p2);
+		FillTriangle(a, b, c);
 	}
 }
 
-//布雷森汉姆直线算法
-void DrawLine_Algo01(FLOAT2D p0, FLOAT2D p1)
+void FillTriangle(FLOAT3D a, FLOAT3D b, FLOAT3D c)
 {
-	//对直线进行剪裁
-	//TODO
-	if (!LiangBarskyLineClipping(&p0, &p1, rectRender.right, rectRender.bottom)) { return; }
-	//直线斜率是否大于1
-	BOOL steep = ABS(p1.y - p0.y) > ABS(p1.x - p0.x);
-	//如果大于1
-	//将直线沿 y=x 翻转输出
-	if (steep)
+	float x1 = a.x;
+	float x2 = b.x;
+	float x3 = c.x;
+
+	float y1 = a.y;
+	float y2 = b.y;
+	float y3 = c.y;
+
+	int minx = (int)Min3(x1, x2, x3);
+	int miny = (int)Min3(y1, y2, y3);
+	int maxx = (int)Max3(x1, x2, x3);
+	int maxy = (int)Max3(y1, y2, y3);
+
+	float x12 = x1 - x2;
+	float y12 = y1 - y2;
+	float x23 = x2 - x3;
+	float y23 = y2 - y3;
+	float x31 = x3 - x1;
+	float y31 = y3 - y1;
+
+	for (int x = minx; x <= maxx; x++)
 	{
-		swap(&p0.x, &p0.y);
-		swap(&p1.x, &p1.y);
-	}
-	if (p0.x > p1.x)
-	{
-		swap(&p0.x, &p1.x);
-		swap(&p0.y, &p1.y);
-	}
-	int dx = (int)(p1.x - p0.x);
-	int dy = (int)ABS(p1.y - p0.y);
-
-	int err = dx / 2;
-
-	//y的增量
-	int ystep = (p0.y < p1.y) ? 1 : -1;
-	//用于绘画的 y 数值
-	int painter_y = (int)p0.y;
-
-	for (int i = (int)p0.x; i <= p1.x; i++) {
-		if (steep)
+		for (int y = miny; y <= maxy; y++)
 		{
-			SetPixel(buffer_dc, painter_y, rectRender.bottom  - i, BLACKCOLOR);
-		}
-		else
-		{
-			SetPixel(buffer_dc, i, rectRender.bottom - painter_y, BLACKCOLOR);
-		}
-		err -= dy;
-		if (err < 0) {
-			painter_y += ystep;
-			err += dx;
+			//x1->x2
+			if (x12*(y - y1) - y12*(x - x1) > 0 &&
+				x23*(y - y2) - y23*(x - x2) > 0 &&
+				x31*(y - y3) - y31*(x - x3) > 0)
+			{
+				SetPixel(buffer_dc, x, rectRender.bottom - y, RGB(x & 255, y & 255, x*y & 255));
+			}
 		}
 	}
 }
@@ -219,6 +210,7 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (Msg)
 	{
+	//右键按下时锁定指针
 	case WM_RBUTTONDOWN:
 		SetCursorPos(cursor.x, cursor.y);
 		centerCursor = !centerCursor;
@@ -228,40 +220,42 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 			ShowCursor(TRUE);
 		break;
 	case WM_SIZE:
+		//需重新计算渲染空间大小及高宽比
+		//需重新计算鼠标中心位置
+
+		//取得新屏幕的大小
 		rectRender.right = LOWORD(lParam);
 		rectRender.bottom = HIWORD(lParam);
 		rectRender.left = 0;
 		rectRender.top = 0;
-
+		//删除原来大小的画布
 		DeleteDC(buffer_dc);
 		DeleteObject(bmp);
-
+		//创建新的画布
 		bmp = CreateCompatibleBitmap(GetDC(hWnd), rectRender.right, rectRender.bottom);
 		buffer_dc = CreateCompatibleDC(GetDC(hWnd));
 		SelectObject(buffer_dc, bmp);
-
+		//高宽比
 		camera.screenAspect = (float)rectRender.right / (float)rectRender.bottom;
-
+		//重新填充背景色
 		FillRect(buffer_dc, &rectRender, CreateSolidBrush(BGCOLOR));
-
+	//不需要break
+	//移动窗口仅需重新计算指针的位置
+	case WM_MOVE:
+		//重新计算鼠标的中心位置
 		cursor.x = rectRender.right / 2;
 		cursor.y = rectRender.bottom / 2;
 		ClientToScreen(hWnd, &cursor);
 		break;
 	case WM_CREATE:
-		//ShowCursor(FALSE);
-		//创建并初始化画布
 		bmp = CreateCompatibleBitmap(GetDC(hWnd), rectRender.right, rectRender.bottom);
 		buffer_dc = CreateCompatibleDC(GetDC(hWnd));
 		SelectObject(buffer_dc, bmp);
 		FillRect(buffer_dc, &rectRender, CreateSolidBrush(BGCOLOR));
 
 		//初始化世界物体及摄像机
-		InitCamera(&camera, 0, 0, -500, 0, 0, 0, 10, 700, 70, (float)rectRender.right / (float)rectRender.bottom, 3.0f);
-		InitObject(&CubePoints[0], 0, 0, 0, 0, 0, 0);
-		InitObject(&CubePoints[1], 200, 0, 200, 0, 0, 0);
-		InitObject(&CubePoints[2], 400, 0, 400, 0, 0, 0);
-
+		InitCamera(&camera, 0, 0, -500, 0, 0, 0, 10, 1500, 70, (float)rectRender.right / (float)rectRender.bottom, 5.0f);
+		InitObject(&Triangle, 0, 0, 0, 0, 0, 0);
 		break;
 	//窗口重绘时
 	case WM_PAINT:
@@ -275,8 +269,12 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		}
 		if (wParam == VK_F1)
 		{
-			;
+			//float max=Min3(3.0f,2.0f,5.0f);
 		}
+		break;
+	case WM_KILLFOCUS:
+		centerCursor = 0;
+		ShowCursor(TRUE);
 		break;
 	case WM_KEYUP:
 		screen_keys[wParam & 511] = 0; 
@@ -284,9 +282,7 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		quit = 1;
 		//销毁模型！！！
-		DeleteModel(&CubePoints[0].model);
-		DeleteModel(&CubePoints[1].model);
-		DeleteModel(&CubePoints[2].model);
+		DeleteModel(&Triangle.model);
 
 		DeleteDC(buffer_dc);
 		DeleteObject(bmp);
@@ -359,17 +355,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 			DispatchMessage(&msg);
 		}
 
-		CameraControl(hWnd);
+		CameraControl();
 
-		RenderFrame();
-
-		//强制重绘整个窗口
+		RenderFrame(&Triangle, 1);
 		BitBlt(GetDC(hWnd), 0, 0, rectRender.right, rectRender.bottom, buffer_dc, 0, 0, SRCCOPY);
+
 		if (centerCursor)
 		{
 			SetCursorPos(cursor.x, cursor.y);
 		}
-		Sleep(5);
+		Sleep(10);
 	}
 	return msg.message;
 }

@@ -70,22 +70,24 @@ MATRIX4 Scale(float multi);
 MATRIX4 RST(MATRIX4 S, MATRIX4 R,MATRIX4 T);
 
 //最后将变换作用于点或向量
-void VectorTransform(FLOAT3D *src, MATRIX4 Transform);
+void VectorTransform(FLOAT3D src, FLOAT3D *Desti, MATRIX4 TRS);
 
 //求逆矩阵
 MATRIX4 InvertMatrix4(MATRIX4);
 
 //求世界至视口
-MATRIX4 GetWorldToViewMatrix4(CAMERA *);
-
-//将物体的点从物体空间转换到齐次剪裁空间空间
-void SingleObjectToViewTransform(OBJECT*, MATRIX4);
+MATRIX4 GetWorldToViewMatrix4(CAMERA);
 
 //根据摄像机计算视口到齐次剪裁空间的变换矩阵
-MATRIX4 GetViewToHomoMatrix4(CAMERA *);
+MATRIX4 GetViewToHomoMatrix4(CAMERA);
 
-//将单个物体从视口转换至齐次剪裁空间
-void SingleObectFromViewToHomoTransform(OBJECT*, MATRIX4);
+//一步到位
+//从物体空间转到齐次剪裁空间
+//先将点转到世界
+//世界到视口
+//视口到齐次剪裁空间
+//再将变换后的点集指针返回
+FLOAT3D* SingleObjectLocalToHomo(OBJECT, MATRIX4 WTV, MATRIX4 VTH);
 
 //对多边形进行背面剔除
 int TriangleBackCull(FLOAT3D p0, FLOAT3D p1, FLOAT3D p2);

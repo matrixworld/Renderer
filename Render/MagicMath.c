@@ -149,7 +149,7 @@ MATRIX4 Rotation_SingleAxis(char axis, float degree)
 		return matrix_R;
 	}
 
-	degree *= 0.01745f;
+	degree = DEGREE(degree);
 	float c = cosf(degree);
 	float s = sinf(degree);
 
@@ -200,17 +200,11 @@ MATRIX4 RST(MATRIX4 S, MATRIX4 R,MATRIX4 T)
 	return MatrixMul4(MatrixMul4(S, R), T);
 }
 
-void VectorTransform(FLOAT3D *src, MATRIX4 TRS)
+void VectorTransform(FLOAT3D src, FLOAT3D *Desti, MATRIX4 TRS)
 {
-	FLOAT3D newPOS;
-
-	newPOS.x = src->x*TRS.var[0][0] + src->y*TRS.var[1][0] + src->z*TRS.var[2][0] + TRS.var[3][0];
-	newPOS.y = src->x*TRS.var[0][1] + src->y*TRS.var[1][1] + src->z*TRS.var[2][1] + TRS.var[3][1];
-	newPOS.z = src->x*TRS.var[0][2] + src->y*TRS.var[1][2] + src->z*TRS.var[2][2] + TRS.var[3][2];
-
-	src->x = newPOS.x;
-	src->y = newPOS.y;
-	src->z = newPOS.z;
+	Desti->x = src.x*TRS.var[0][0] + src.y*TRS.var[1][0] + src.z*TRS.var[2][0] + TRS.var[3][0];
+	Desti->y = src.x*TRS.var[0][1] + src.y*TRS.var[1][1] + src.z*TRS.var[2][1] + TRS.var[3][1];
+	Desti->z = src.x*TRS.var[0][2] + src.y*TRS.var[1][2] + src.z*TRS.var[2][2] + TRS.var[3][2];
 }
 
 //计算逆矩阵
@@ -285,67 +279,64 @@ MATRIX4 InvertMatrix4(MATRIX4 input)
 	return output;
 }
 
-MATRIX4 GetWorldToViewMatrix4(CAMERA *camera)
+MATRIX4 GetWorldToViewMatrix4(CAMERA camera)
 {
-	return InvertMatrix4(MatrixMul4(Rotation(camera->rotation), Transition(camera->POS)));
+	return InvertMatrix4(MatrixMul4(Rotation(camera.rotation), Transition(camera.POS)));
 }
 
-//将物体的矩阵和摄像机的逆矩阵乘起来
-//再对物体进行变换
-void SingleObjectToViewTransform(OBJECT* object, MATRIX4 WTV)
-{
-	MATRIX4 ObjectToViewMatrix4;
-	Matrix4SetZero(&ObjectToViewMatrix4);
-
-	//物体坐标 -> 世界坐标
-	//先缩放和旋转
-	//再平移
-	ObjectToViewMatrix4 = RST(Scale(1.0f), Rotation(object->rotation), Transition(object->position));
-	ObjectToViewMatrix4 = MatrixMul4(ObjectToViewMatrix4, WTV);
-
-	for (int lop = 0; lop < object->model.vertexNum; lop++)
-	{
-		VectorTransform(&object->model.vertexList[lop], ObjectToViewMatrix4);
-	}
-}
-
-MATRIX4 GetViewToHomoMatrix4(CAMERA *camera)
+MATRIX4 GetViewToHomoMatrix4(CAMERA camera)
 {
 	MATRIX4 hMatrix4;
 	Matrix4SetZero(&hMatrix4);
 
 	float l, r, t, b;
 
-	r = camera->NearZ*tanf(camera->FOV *0.01745f / 2.0f);
+	r = camera.NearZ*tanf(camera.FOV *0.01745f / 2.0f);
 	l = -r;
-	t = r / camera->screenAspect;
+	t = r / camera.screenAspect;
 	b = -t;
 
-	hMatrix4.var[0][0] = (2 * camera->NearZ) / (r - l);
-	hMatrix4.var[1][1] = (2 * camera->NearZ) / (t - b);
+	hMatrix4.var[0][0] = (2 * camera.NearZ) / (r - l);
+	hMatrix4.var[1][1] = (2 * camera.NearZ) / (t - b);
 	//hMatrix4.var[2][0] = (r + l) / (r - l);
 	//hMatrix4.var[2][1] = (t + b) / (t - b);
-	hMatrix4.var[2][2] = (camera->FarZ + camera->NearZ) / (camera->FarZ - camera->NearZ);
+	hMatrix4.var[2][2] = (camera.FarZ + camera.NearZ) / (camera.FarZ - camera.NearZ);
 	hMatrix4.var[2][3] = 1.0f;
-	hMatrix4.var[3][2] = -(2.0f*camera->NearZ*camera->FarZ) / (camera->FarZ - camera->NearZ);
+	hMatrix4.var[3][2] = -(2.0f*camera.NearZ*camera.FarZ) / (camera.FarZ - camera.NearZ);
 
 	return hMatrix4;
 }
 
-void SingleObectFromViewToHomoTransform(OBJECT *object, MATRIX4 VTH)
+FLOAT3D* SingleObjectLocalToHomo(OBJECT object, MATRIX4 WTV, MATRIX4 VTH)
 {
-	float z;
-
-	for (int lop = 0; lop < object->model.vertexNum; lop++)
+	//先是Local到World到View
+	MATRIX4 LocalToView = { 0.0f };
+	LocalToView = RST(Scale(1.0f), Rotation(object.rotation), Transition(object.position));
+	LocalToView = MatrixMul4(LocalToView, WTV);
+	//将模型的点根据本地到视口矩阵进行变换
+	//将新产生的点储存起来
+	FLOAT3D *TmpVertexes = (FLOAT3D*)malloc(object.model.vertexNum*sizeof(FLOAT3D));
+	int lop;
+	for (lop = 0; lop < object.model.vertexNum; lop++)
 	{
-		z = object->model.vertexList[lop].z;
-
-		VectorTransform(&object->model.vertexList[lop], VTH);
-
-		object->model.vertexList[lop].x /= z;
-		object->model.vertexList[lop].y /= z;
-		object->model.vertexList[lop].z /= z;
+		VectorTransform(object.model.vertexList[lop], &TmpVertexes[lop], LocalToView);
 	}
+
+	//然后转换到齐次剪裁空间
+	float z;
+	for (lop = 0; lop < object.model.vertexNum; lop++)
+	{
+		//深度信息
+		z = TmpVertexes[lop].z;
+		VectorTransform(TmpVertexes[lop], &TmpVertexes[lop], VTH);
+
+		TmpVertexes[lop].x /= z;
+		TmpVertexes[lop].y /= z;
+		TmpVertexes[lop].z /= z;
+	}
+
+	//缺少CVV剪裁
+	return TmpVertexes;
 }
 
 int TriangleBackCull(FLOAT3D p0, FLOAT3D p1, FLOAT3D p2)

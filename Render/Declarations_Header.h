@@ -37,7 +37,7 @@ z : Roll
 #define BGCOLOR (RGB(255,255,255))
 //黑色
 #define BLACKCOLOR (RGB(0,0,0))
-
+#define DEGREE(x) (0.01745f*(x))
 //////////////
 //数学概念定义//
 //////////////
@@ -75,8 +75,13 @@ typedef struct _MODEL
 	FLOAT3D *vertexList;
 	//记录点的个数
 	int vertexNum;
+
 	//索引表以-1结束
-	int verterListIndex[40];
+	int *vertexListIndex;
+	//记录索引表的长度
+	int indexNumber;
+	//n为三角形的数量
+	//3*n + 1
 }MODEL;
 
 //模型在世界空间的结构体
