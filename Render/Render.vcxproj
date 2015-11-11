@@ -88,6 +88,11 @@
     <ClInclude Include="MagicMath.h" />
     <ClInclude Include="Declarations_Header.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="ApertureTexture.bmp" />
+    <Image Include="Background.bmp" />
+    <Image Include="CheckbroadTexture.bmp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

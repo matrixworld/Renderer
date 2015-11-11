@@ -17,7 +17,7 @@ float Determinant(MATRIX3);
 //为模型申请储存空间
 void InitModel(MODEL *, int, int);
 //为模型填入数据
-void InitModelWithCube22(MODEL *);
+//void InitModelWithCube22(MODEL *);
 void InitModelWithSingleTriangle(MODEL *);
 
 void DeleteModel(MODEL *);

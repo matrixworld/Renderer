@@ -319,7 +319,7 @@ FLOAT3D* SingleObjectLocalToHomo(OBJECT object, MATRIX4 WTV, MATRIX4 VTH)
 	int lop;
 	for (lop = 0; lop < object.model.vertexNum; lop++)
 	{
-		VectorTransform(object.model.vertexList[lop], &TmpVertexes[lop], LocalToView);
+		VectorTransform(object.model.vertexList[lop].vertex, &TmpVertexes[lop], LocalToView);
 	}
 
 	//然后转换到齐次剪裁空间

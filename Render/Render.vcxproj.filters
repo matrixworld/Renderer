@@ -36,4 +36,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="ApertureTexture.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Background.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="CheckbroadTexture.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

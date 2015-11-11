@@ -25,11 +25,15 @@ char screen_keys[512];
 //渲染区域（客户坐标系）
 RECT rectRender;
 //储存指针位置
-//相对客户坐标系
+//屏幕坐标系
 POINT cursor;
 //储存渲染结果的设备上下文
-HDC buffer_dc;
-HBITMAP bmp;
+HDC hdcBuffer;
+HDC hdcTexture;
+HBITMAP bmpTexture;
+HBITMAP bmpBackground;
+HBRUSH brushBackground;
+HBRUSH brushTexture;
 
 CAMERA camera;
 OBJECT Triangle;
@@ -49,9 +53,14 @@ void CameraControl();
 void RenderFrame(OBJECT *, int);
 //根据点的索引表顺序绘画三角形
 void DrawModelListIndex(FLOAT3D *, int *);
-//TODO
-//填充三角形
+
+//填充三角形的几种方法
+//Line Equations
+void FillTriangleAbandoned(FLOAT3D, FLOAT3D, FLOAT3D);
+//Scanline
 void FillTriangle(FLOAT3D, FLOAT3D, FLOAT3D);
+//销毁素材
+void HandleDestroy();
 
 ///////////
 //函数定义//
@@ -105,8 +114,8 @@ void CameraControl()
 
 void RenderFrame(OBJECT* objectList, int ObjectTotalNum)
 {
-	//清空背景
-	FillRect(buffer_dc, &rectRender, CreateSolidBrush(BGCOLOR));
+	//用画刷填充背景
+	FillRect(hdcBuffer, &rectRender, brushBackground);
 	//生成世界到视口矩阵
 	//所有的物体的点都要乘以该矩阵
 	MATRIX4 WorldToView = GetWorldToViewMatrix4(camera);
@@ -162,11 +171,14 @@ void DrawModelListIndex(FLOAT3D *vertexList, int *listIndex)
 			continue;
 		}
 
-		FillTriangle(a, b, c);
+		//TODO
+		FillTriangleAbandoned(a, b, c);
 	}
 }
 
-void FillTriangle(FLOAT3D a, FLOAT3D b, FLOAT3D c)
+//寻找纹理映射的写法
+//测试算法
+void FillTriangleAbandoned(FLOAT3D a, FLOAT3D b, FLOAT3D c)
 {
 	float x1 = a.x;
 	float x2 = b.x;
@@ -187,20 +199,59 @@ void FillTriangle(FLOAT3D a, FLOAT3D b, FLOAT3D c)
 	float y23 = y2 - y3;
 	float x31 = x3 - x1;
 	float y31 = y3 - y1;
+	
+	//用于直接从载入的纹理采样的UV坐标
+	float u, v;
+	//左右两点的UV坐标
+	float uLeft, uRight, vLeft, vRight;
+	//UV变化量
+	float uStep, vStep;
+	//左右两点的 x 范围
+	float xLeft, xRight;
 
-	for (int x = minx; x <= maxx; x++)
+
+	for (int y = miny; y <= maxy; y++)
 	{
-		for (int y = miny; y <= maxy; y++)
+		xLeft = (y - a.y) / (c.y - a.y) * (c.x - a.x) + a.x;
+		xRight = (y - a.y) / (b.y - a.y) * (b.x - a.x) + a.x;
+
+		uLeft = 0.0f;
+		uRight = (y - a.y) / (b.y - a.y)*(512.0f);
+
+		vLeft = (y - a.y) / (c.y - a.y)*(512.0f);
+		vRight = (y - a.y) / (b.y - a.y)*(512.0f);
+
+		uStep = (uRight - uLeft) / (xRight - xLeft);
+		vStep = (vRight - vLeft) / (xRight - xLeft);
+
+		int x = 0;
+		for (x =(int) xLeft, u = uLeft, v = vLeft; x <= (int)xRight; x++, u += uStep, v += vStep)
 		{
-			//x1->x2
 			if (x12*(y - y1) - y12*(x - x1) > 0 &&
 				x23*(y - y2) - y23*(x - x2) > 0 &&
 				x31*(y - y3) - y31*(x - x3) > 0)
 			{
-				SetPixel(buffer_dc, x, rectRender.bottom - y, RGB(x & 255, y & 255, x*y & 255));
+				SetPixel(hdcBuffer, x, rectRender.bottom - y, GetPixel(hdcTexture, (int)u, (int)v));
 			}
 		}
 	}
+}
+
+void FillTriangle(FLOAT3D a, FLOAT3D b, FLOAT3D c)
+{
+	//TODO
+}
+
+void HandleDestroy()
+{
+	DeleteDC(hdcBuffer);
+	DeleteDC(hdcTexture);
+
+	DeleteObject(bmpTexture);
+	DeleteObject(bmpBackground);
+
+	DeleteObject(brushBackground);
+	DeleteObject(brushTexture);
 }
 
 ///////////////////
@@ -208,10 +259,21 @@ void FillTriangle(FLOAT3D a, FLOAT3D b, FLOAT3D c)
 //////////////////
 LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
+	RECT tmptexture;
+	tmptexture.left = tmptexture.top = 0;
+	tmptexture.right = tmptexture.bottom = 512;
 	switch (Msg)
 	{
 	//右键按下时锁定指针
 	case WM_RBUTTONDOWN:
+		//载入贴图
+		bmpTexture = (HBITMAP)LoadImage(NULL, TEXT("CheckBroadTexture.bmp"), IMAGE_BITMAP, 512, 512, LR_CREATEDIBSECTION | LR_DEFAULTSIZE | LR_LOADFROMFILE);
+		brushTexture = CreatePatternBrush(bmpTexture);
+		hdcTexture = CreateCompatibleDC(GetDC(hWnd));
+		SelectObject(hdcTexture, bmpTexture);
+		FillRect(hdcTexture, &tmptexture, brushTexture);
+		///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 		SetCursorPos(cursor.x, cursor.y);
 		centerCursor = !centerCursor;
 		if (centerCursor)
@@ -229,16 +291,17 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		rectRender.left = 0;
 		rectRender.top = 0;
 		//删除原来大小的画布
-		DeleteDC(buffer_dc);
-		DeleteObject(bmp);
-		//创建新的画布
-		bmp = CreateCompatibleBitmap(GetDC(hWnd), rectRender.right, rectRender.bottom);
-		buffer_dc = CreateCompatibleDC(GetDC(hWnd));
-		SelectObject(buffer_dc, bmp);
+		HandleDestroy();
+
+		//载入背景
+		bmpBackground = (HBITMAP)LoadImage(NULL, TEXT("Background.bmp"), IMAGE_BITMAP, rectRender.right, rectRender.bottom, LR_CREATEDIBSECTION | LR_DEFAULTSIZE | LR_LOADFROMFILE);
+		//创建背景画刷
+		brushBackground = CreatePatternBrush(bmpBackground);
+		hdcBuffer = CreateCompatibleDC(GetDC(hWnd));
+		SelectObject(hdcBuffer, bmpBackground);
 		//高宽比
 		camera.screenAspect = (float)rectRender.right / (float)rectRender.bottom;
-		//重新填充背景色
-		FillRect(buffer_dc, &rectRender, CreateSolidBrush(BGCOLOR));
+
 	//不需要break
 	//移动窗口仅需重新计算指针的位置
 	case WM_MOVE:
@@ -248,18 +311,13 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		ClientToScreen(hWnd, &cursor);
 		break;
 	case WM_CREATE:
-		bmp = CreateCompatibleBitmap(GetDC(hWnd), rectRender.right, rectRender.bottom);
-		buffer_dc = CreateCompatibleDC(GetDC(hWnd));
-		SelectObject(buffer_dc, bmp);
-		FillRect(buffer_dc, &rectRender, CreateSolidBrush(BGCOLOR));
-
 		//初始化世界物体及摄像机
 		InitCamera(&camera, 0, 0, -500, 0, 0, 0, 10, 1500, 70, (float)rectRender.right / (float)rectRender.bottom, 5.0f);
 		InitObject(&Triangle, 0, 0, 0, 0, 0, 0);
 		break;
 	//窗口重绘时
 	case WM_PAINT:
-		BitBlt(GetDC(hWnd), 0, 0, rectRender.right, rectRender.bottom, buffer_dc, 0, 0, SRCCOPY);
+		BitBlt(GetDC(hWnd), 0, 0, rectRender.right, rectRender.bottom, hdcBuffer, 0, 0, SRCCOPY);
 		break;
 	//有键被按下时
 	case WM_KEYDOWN:
@@ -269,7 +327,8 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		}
 		if (wParam == VK_F1)
 		{
-			//float max=Min3(3.0f,2.0f,5.0f);
+			//ShowCursor(TRUE)
+			;
 		}
 		break;
 	case WM_KILLFOCUS:
@@ -283,9 +342,7 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		quit = 1;
 		//销毁模型！！！
 		DeleteModel(&Triangle.model);
-
-		DeleteDC(buffer_dc);
-		DeleteObject(bmp);
+		HandleDestroy();
 
 		PostQuitMessage(0);
 		break;
@@ -311,7 +368,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 		screen_keys[lop] = 0;
 	}
 
-	wchar_t Name[] = TEXT("Output");
+	wchar_t Name[] = TEXT("Software Renderer");
 	WNDCLASSEX wnd = { 0 };
 	wnd.cbClsExtra = 0;
 	wnd.cbSize = sizeof(WNDCLASSEX);
@@ -330,7 +387,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 
 	//计算实际窗口大小，算上边框和标题栏
 	AdjustWindowRectEx(&rectRender, WS_OVERLAPPEDWINDOW, 0, WS_EX_CLIENTEDGE);
-	HWND hWnd = CreateWindowEx(WS_EX_CLIENTEDGE, Name, TEXT("Render"),
+	HWND hWnd = CreateWindowEx(WS_EX_CLIENTEDGE, Name, TEXT("Software Renderer"),
 		WS_OVERLAPPEDWINDOW, (WINDOW_X - rectRender.right + rectRender.left) / 2, (WINDOW_Y - rectRender.bottom + rectRender.top) / 2,
 		rectRender.right - rectRender.left, rectRender.bottom - rectRender.top, NULL, NULL, hInstance, NULL);
 	rectRender.top = 0; rectRender.left = 0; rectRender.bottom = RENDER_Y; rectRender.right = RENDER_X;
@@ -358,7 +415,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 		CameraControl();
 
 		RenderFrame(&Triangle, 1);
-		BitBlt(GetDC(hWnd), 0, 0, rectRender.right, rectRender.bottom, buffer_dc, 0, 0, SRCCOPY);
+		BitBlt(GetDC(hWnd), 0, 0, rectRender.right, rectRender.bottom, hdcBuffer, 0, 0, SRCCOPY);
 
 		if (centerCursor)
 		{

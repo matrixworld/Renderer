@@ -64,6 +64,12 @@ typedef struct _MATRIX4
 	float var[4][4];
 }MATRIX4;
 
+typedef struct _MODELVERTEX
+{
+	FLOAT3D vertex;
+	int U, V;
+}MODELVERTEX;
+
 ///////////
 //物体定义//
 //////////
@@ -72,7 +78,7 @@ typedef struct _MATRIX4
 typedef struct _MODEL
 {
 	//用索引表来记录三角形
-	FLOAT3D *vertexList;
+	MODELVERTEX *vertexList;
 	//记录点的个数
 	int vertexNum;
 

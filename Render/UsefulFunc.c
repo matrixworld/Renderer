@@ -45,48 +45,60 @@ float Determinant(MATRIX3 input)
 
 void InitModel(MODEL *input,int vertexNum,int indexNum)
 {
-	input->vertexList = (FLOAT3D*)malloc(vertexNum*sizeof(FLOAT3D));
+	input->vertexList = (MODELVERTEX*)malloc(vertexNum*sizeof(MODELVERTEX));
 	input->vertexNum = vertexNum;
 
 	input->vertexListIndex = (int*)malloc(indexNum*sizeof(int));
 	input->indexNumber = indexNum;
 }
 
+/*
+TODO
 void InitModelWithCube22(MODEL *input)
 {
 	InitModel(input, 8, 37);
 
-	input->vertexList[0].x = 100.0f;
-	input->vertexList[0].y = 100.0f;
-	input->vertexList[0].z = 100.0f;
+	input->vertexList[0].vertex.x = 100.0f;
+	input->vertexList[0].vertex.y = 100.0f;
+	input->vertexList[0].vertex.z = 100.0f;
+	input->vertexList[0].U = 0;
+	input->vertexList[0].V = 0;
 
-	input->vertexList[1].x = -100.0f;
-	input->vertexList[1].y = 100.0f;
-	input->vertexList[1].z = 100.0f;
+	input->vertexList[1].vertex.x = -100.0f;
+	input->vertexList[1].vertex.y = 100.0f;
+	input->vertexList[1].vertex.z = 100.0f;
+	input->vertexList[1].U = 512;
+	input->vertexList[1].V = 0;
 
-	input->vertexList[2].x = -100.0f;
-	input->vertexList[2].y = 100.0f;
-	input->vertexList[2].z = -100.0f;
+	input->vertexList[2].vertex.x = -100.0f;
+	input->vertexList[2].vertex.y = 100.0f;
+	input->vertexList[2].vertex.z = -100.0f;
+	input->vertexList[2].U = 512;
+	input->vertexList[2].V = 0;
 
-	input->vertexList[3].x = 100.0f;
-	input->vertexList[3].y = 100.0f;
-	input->vertexList[3].z = -100.0f;
+	input->vertexList[3].vertex.x = 100.0f;
+	input->vertexList[3].vertex.y = 100.0f;
+	input->vertexList[3].vertex.z = -100.0f;
+	input->vertexList[3].U = 512;
+	input->vertexList[3].V = 0;
 
-	input->vertexList[4].x = 100.0f;
-	input->vertexList[4].y = -100.0f;
-	input->vertexList[4].z = 100.0f;
+	input->vertexList[4].vertex.x = 100.0f;
+	input->vertexList[4].vertex.y = -100.0f;
+	input->vertexList[4].vertex.z = 100.0f;
+	input->vertexList[4].U = ;
+	input->vertexList[4].V = 0;
 
-	input->vertexList[5].x = -100.0f;
-	input->vertexList[5].y = -100.0f;
-	input->vertexList[5].z = 100.0f;
+	input->vertexList[5].vertex.x = -100.0f;
+	input->vertexList[5].vertex.y = -100.0f;
+	input->vertexList[5].vertex.z = 100.0f;
 
-	input->vertexList[6].x = -100.0f;
-	input->vertexList[6].y = -100.0f;
-	input->vertexList[6].z = -100.0f;
+	input->vertexList[6].vertex.x = -100.0f;
+	input->vertexList[6].vertex.y = -100.0f;
+	input->vertexList[6].vertex.z = -100.0f;
 
-	input->vertexList[7].x = 100.0f;
-	input->vertexList[7].y = -100.0f;
-	input->vertexList[7].z = -100.0f;
+	input->vertexList[7].vertex.x = 100.0f;
+	input->vertexList[7].vertex.y = -100.0f;
+	input->vertexList[7].vertex.z = -100.0f;
 
 	//三角形索引表
 	for (int lop = 0; lop < input->indexNumber; lop++)
@@ -143,25 +155,35 @@ void InitModelWithCube22(MODEL *input)
 
 	input->vertexListIndex[36] = -1;
 }
+*/
 void InitModelWithSingleTriangle(MODEL *input)
 {
 	InitModel(input, 3, 4);
-	//上点
-	input->vertexList[0].x = 0.0f;
-	input->vertexList[0].y = 100.0f;
-	input->vertexList[0].z = 0.0f;
-	//右点
-	input->vertexList[1].x = 100.0f;
-	input->vertexList[1].y = 0.0f;
-	input->vertexList[1].z = 0.0f;
-	//左点
-	input->vertexList[2].x = -100.0f;
-	input->vertexList[2].y = 0.0f;
-	input->vertexList[2].z = 0.0f;
+	//左上点
+	input->vertexList[0].vertex.x = 0.0f;
+	input->vertexList[0].vertex.y = 100.0f;
+	input->vertexList[0].vertex.z = 0.0f;
+	input->vertexList[0].U = 0;
+	input->vertexList[0].V = 0;
+
+	//右下点
+	input->vertexList[1].vertex.x = 100.0f;
+	input->vertexList[1].vertex.y = 0.0f;
+	input->vertexList[1].vertex.z = 0.0f;
+	input->vertexList[1].U = 512;
+	input->vertexList[1].V = 512;
+
+	//左下点
+	input->vertexList[2].vertex.x = 0.0f;
+	input->vertexList[2].vertex.y = 0.0f;
+	input->vertexList[2].vertex.z = 0.0f;
+	input->vertexList[2].U = 0;
+	input->vertexList[2].V = 512;
 
 	input->vertexListIndex[0] = 0;
 	input->vertexListIndex[1] = 1;
 	input->vertexListIndex[2] = 2;
+
 	input->vertexListIndex[3] = -1;
 }
 
@@ -178,8 +200,8 @@ void DeleteModel(MODEL *input)
 
 void InitObject(OBJECT *object, float x, float y, float z, float i, float j, float k)
 {
-	InitModelWithCube22(&object->model);
-	//InitModelWithSingleTriangle(&object->model);
+	//InitModelWithCube22(&object->model);
+	InitModelWithSingleTriangle(&object->model);
 
 	object->position.x = x;
 	object->position.y = y;
