@@ -52,11 +52,11 @@ void CameraControl();
 //渲染完整的一帧
 void RenderFrame(OBJECT *, int);
 //根据点的索引表顺序绘画三角形
-void DrawModelListIndex(FLOAT3D *, int *);
+void DrawModelListIndex(FLOAT3D *, int *,MODELVERTEX*);
 
 //填充三角形的几种方法
 //Line Equations
-void FillTriangleAbandoned(FLOAT3D, FLOAT3D, FLOAT3D);
+void FillTriangleAbandoned(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb, FLOAT3D c, int Uc, int Vc);
 //Scanline
 void FillTriangle(FLOAT3D, FLOAT3D, FLOAT3D);
 //销毁素材
@@ -136,14 +136,14 @@ void RenderFrame(OBJECT* objectList, int ObjectTotalNum)
 				(SingleObjectTmpVertexes[lop2].y + 1.0f) * rectRender.bottom / 2.0f;
 		}
 		//画出点和线
-		DrawModelListIndex(SingleObjectTmpVertexes, objectList[lop].model.vertexListIndex);
+		DrawModelListIndex(SingleObjectTmpVertexes, objectList[lop].model.vertexListIndex, objectList[lop].model.vertexList);
 
 		free(SingleObjectTmpVertexes);
 		SingleObjectTmpVertexes = NULL;
 	}
 }
 
-void DrawModelListIndex(FLOAT3D *vertexList, int *listIndex)
+void DrawModelListIndex(FLOAT3D *vertexList, int *listIndex,MODELVERTEX *modelVertexList)
 {
 	FLOAT3D a, b, c;
 	int index = 0;
@@ -172,13 +172,15 @@ void DrawModelListIndex(FLOAT3D *vertexList, int *listIndex)
 		}
 
 		//TODO
-		FillTriangleAbandoned(a, b, c);
+		FillTriangleAbandoned(a, modelVertexList[listIndex[index]].U, modelVertexList[listIndex[index]].V,
+			b, modelVertexList[listIndex[index + 1]].U, modelVertexList[listIndex[index + 1]].V,
+			c, modelVertexList[listIndex[index + 2]].U, modelVertexList[listIndex[index + 2]].V);
 	}
 }
 
 //寻找纹理映射的写法
 //测试算法
-void FillTriangleAbandoned(FLOAT3D a, FLOAT3D b, FLOAT3D c)
+void FillTriangleAbandoned(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb, FLOAT3D c, int Uc, int Vc)
 {
 	float x1 = a.x;
 	float x2 = b.x;
@@ -193,13 +195,6 @@ void FillTriangleAbandoned(FLOAT3D a, FLOAT3D b, FLOAT3D c)
 	int maxx = (int)Max3(x1, x2, x3);
 	int maxy = (int)Max3(y1, y2, y3);
 
-	float x12 = x1 - x2;
-	float y12 = y1 - y2;
-	float x23 = x2 - x3;
-	float y23 = y2 - y3;
-	float x31 = x3 - x1;
-	float y31 = y3 - y1;
-	
 	//用于直接从载入的纹理采样的UV坐标
 	float u, v;
 	//左右两点的UV坐标
@@ -210,22 +205,42 @@ void FillTriangleAbandoned(FLOAT3D a, FLOAT3D b, FLOAT3D c)
 	float xLeft, xRight;
 
 
+	//速度优化
+	float x12 = x1 - x2;
+	float y12 = y1 - y2;
+	float x23 = x2 - x3;
+	float y23 = y2 - y3;
+	float x31 = x3 - x1;
+	float y31 = y3 - y1;
+
+	//y - a.y
+	float t_YsubAY;
+	//(y - a.y) / (c.y - a.y)
+	float t_YAYCYAY;
+	//(y - a.y) / (b.y - a.y)
+	float t_YAYBYAY;
+
+	//双重循环
 	for (int y = miny; y <= maxy; y++)
 	{
-		xLeft = (y - a.y) / (c.y - a.y) * (c.x - a.x) + a.x;
-		xRight = (y - a.y) / (b.y - a.y) * (b.x - a.x) + a.x;
+		t_YsubAY = y - a.y;
+		t_YAYCYAY = t_YsubAY / (c.y - a.y);
+		t_YAYBYAY = t_YsubAY / (b.y - a.y);
 
-		uLeft = 0.0f;
-		uRight = (y - a.y) / (b.y - a.y)*(512.0f);
+		xLeft = t_YAYCYAY * (c.x - a.x) + a.x;
+		xRight = t_YAYBYAY * (b.x - a.x) + a.x;
 
-		vLeft = (y - a.y) / (c.y - a.y)*(512.0f);
-		vRight = (y - a.y) / (b.y - a.y)*(512.0f);
+		uLeft = t_YAYCYAY * (Uc - Ua) + Ua;
+		uRight = t_YAYBYAY * (Ub - Ua) + Ua;
+
+		vLeft = t_YAYCYAY * (Vc - Va) + Va;
+		vRight = t_YAYBYAY * (Vb - Va) + Va;
 
 		uStep = (uRight - uLeft) / (xRight - xLeft);
 		vStep = (vRight - vLeft) / (xRight - xLeft);
 
 		int x = 0;
-		for (x =(int) xLeft, u = uLeft, v = vLeft; x <= (int)xRight; x++, u += uStep, v += vStep)
+		for (x = (int)xLeft, u = uLeft, v = vLeft; x <= (int)xRight; x++, u += uStep, v += vStep)
 		{
 			if (x12*(y - y1) - y12*(x - x1) > 0 &&
 				x23*(y - y2) - y23*(x - x2) > 0 &&
