@@ -36,7 +36,7 @@ HBRUSH brushBackground;
 HBRUSH brushTexture;
 
 CAMERA camera;
-OBJECT Triangle;
+OBJECT Triangle[2];
 
 ////////////////////
 //被大量重复创建的变量//
@@ -56,9 +56,9 @@ void DrawModelListIndex(FLOAT3D *, int *,MODELVERTEX*);
 
 //填充三角形的几种方法
 //Line Equations
-void FillTriangleAbandoned(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb, FLOAT3D c, int Uc, int Vc);
+void FillTriangleAbandoned(FLOAT3D, int, int, FLOAT3D, int, int, FLOAT3D, int, int);
 //Scanline
-void FillTriangle(FLOAT3D, FLOAT3D, FLOAT3D);
+//void FillTriangle(FLOAT3D, FLOAT3D, FLOAT3D);
 //销毁素材
 void HandleDestroy();
 
@@ -198,11 +198,25 @@ void FillTriangleAbandoned(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb,
 	//用于直接从载入的纹理采样的UV坐标
 	float u, v;
 	//左右两点的UV坐标
-	float uLeft, uRight, vLeft, vRight;
+	//float uLeft, uRight, vLeft, vRight;
 	//UV变化量
-	float uStep, vStep;
+	//float uStep, vStep;
 	//左右两点的 x 范围
 	float xLeft, xRight;
+
+
+	//透视正确的插值
+	float oneoverz_Left, oneoverz_Right;
+	float oneoverz_Top, oneoverz_Bottom;
+	float oneoverz, oneoverz_Step;
+	//UV 与 1/z
+	float uoverz_Top, uoverz_Bottom;
+	float uoverz_Left, uoverz_Right;
+	float voverz_Top, voverz_Bottom;
+	float voverz_Left, voverz_Right;
+
+	float uoverz, uoverz_Step;
+	float voverz, voverz_Step;
 
 
 	//速度优化
@@ -230,6 +244,7 @@ void FillTriangleAbandoned(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb,
 		xLeft = t_YAYCYAY * (c.x - a.x) + a.x;
 		xRight = t_YAYBYAY * (b.x - a.x) + a.x;
 
+		/*
 		uLeft = t_YAYCYAY * (Uc - Ua) + Ua;
 		uRight = t_YAYBYAY * (Ub - Ua) + Ua;
 
@@ -238,24 +253,55 @@ void FillTriangleAbandoned(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb,
 
 		uStep = (uRight - uLeft) / (xRight - xLeft);
 		vStep = (vRight - vLeft) / (xRight - xLeft);
+		*/
+
+		//透视正确的插值 值的计算
+		//1 / z
+		oneoverz_Top = 1 / a.z;
+		oneoverz_Bottom = 1 / c.z;
+		oneoverz_Left = t_YAYCYAY * (oneoverz_Bottom - oneoverz_Top) + oneoverz_Top;
+		oneoverz_Bottom = 1 / b.z;
+		oneoverz_Right = t_YAYBYAY * (oneoverz_Bottom - oneoverz_Top) + oneoverz_Top;
+		oneoverz_Step = (oneoverz_Right - oneoverz_Left) / (xRight - xLeft);
+		//U / z
+		uoverz_Top = Ua / a.z;
+		uoverz_Bottom = Uc / c.z;
+		uoverz_Left = t_YAYCYAY * (uoverz_Bottom - uoverz_Top) + uoverz_Top;
+		uoverz_Bottom = Ub / b.z;
+		uoverz_Right = t_YAYBYAY * (uoverz_Bottom - uoverz_Top) + uoverz_Top;
+		uoverz_Step = (uoverz_Right - uoverz_Left) / (xRight - xLeft);
+		//V / z
+		voverz_Top = Va / a.z;
+		voverz_Bottom = Vc / c.z;
+		voverz_Left = t_YAYCYAY * (voverz_Bottom - voverz_Top) + voverz_Top;
+		voverz_Bottom = Vb / b.z;
+		voverz_Right = t_YAYBYAY * (voverz_Bottom - voverz_Top) + voverz_Top;
+		voverz_Step = (voverz_Right - voverz_Left) / (xRight - xLeft);
+
 
 		int x = 0;
-		for (x = (int)xLeft, u = uLeft, v = vLeft; x <= (int)xRight; x++, u += uStep, v += vStep)
+		for (x = (int)xLeft, oneoverz = oneoverz_Left, uoverz = uoverz_Left, voverz = voverz_Left;
+			x <= xRight;
+			x++,oneoverz += oneoverz_Step, uoverz += uoverz_Step, voverz += voverz_Step)
 		{
 			if (x12*(y - y1) - y12*(x - x1) > 0 &&
 				x23*(y - y2) - y23*(x - x2) > 0 &&
 				x31*(y - y3) - y31*(x - x3) > 0)
 			{
+				u = uoverz / oneoverz;
+				v = voverz / oneoverz;
 				SetPixel(hdcBuffer, x, rectRender.bottom - y, GetPixel(hdcTexture, (int)u, (int)v));
 			}
 		}
 	}
 }
 
+/*
 void FillTriangle(FLOAT3D a, FLOAT3D b, FLOAT3D c)
 {
 	//TODO
 }
+*/
 
 void HandleDestroy()
 {
@@ -328,7 +374,8 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	case WM_CREATE:
 		//初始化世界物体及摄像机
 		InitCamera(&camera, 0, 0, -500, 0, 0, 0, 10, 1500, 70, (float)rectRender.right / (float)rectRender.bottom, 5.0f);
-		InitObject(&Triangle, 0, 0, 0, 0, 0, 0);
+		InitObject(&Triangle[0], 0, 0, 0, 0, 0, 0, 1);
+		//InitObject(&Triangle[1], 0, 0, 0, 0, 0, 0, 1);
 		break;
 	//窗口重绘时
 	case WM_PAINT:
@@ -342,8 +389,7 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		}
 		if (wParam == VK_F1)
 		{
-			//ShowCursor(TRUE)
-			;
+			//TODO
 		}
 		break;
 	case WM_KILLFOCUS:
@@ -356,7 +402,8 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		quit = 1;
 		//销毁模型！！！
-		DeleteModel(&Triangle.model);
+		DeleteModel(&Triangle[0].model);
+		DeleteModel(&Triangle[1].model);
 		HandleDestroy();
 
 		PostQuitMessage(0);
@@ -429,7 +476,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreinstance, LPSTR lpCmd, int
 
 		CameraControl();
 
-		RenderFrame(&Triangle, 1);
+		RenderFrame(Triangle, 1);
 		BitBlt(GetDC(hWnd), 0, 0, rectRender.right, rectRender.bottom, hdcBuffer, 0, 0, SRCCOPY);
 
 		if (centerCursor)

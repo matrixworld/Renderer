@@ -156,7 +156,9 @@ void InitModelWithCube22(MODEL *input)
 	input->vertexListIndex[36] = -1;
 }
 */
-void InitModelWithSingleTriangle(MODEL *input)
+
+//左下角的三角形
+void InitModelWithSingleTriangle01(MODEL *input)
 {
 	InitModel(input, 3, 4);
 	//左上点
@@ -187,6 +189,38 @@ void InitModelWithSingleTriangle(MODEL *input)
 	input->vertexListIndex[3] = -1;
 }
 
+//右上角的三角形
+void InitModelWithSingleTriangle02(MODEL *input)
+{
+	InitModel(input, 3, 4);
+	//左上点
+	input->vertexList[0].vertex.x = 0.0f;
+	input->vertexList[0].vertex.y = 100.0f;
+	input->vertexList[0].vertex.z = 0.0f;
+	input->vertexList[0].U = 0;
+	input->vertexList[0].V = 0;
+
+	//右上点
+	input->vertexList[1].vertex.x = 100.0f;
+	input->vertexList[1].vertex.y = 100.0f;
+	input->vertexList[1].vertex.z = 0.0f;
+	input->vertexList[1].U = 512;
+	input->vertexList[1].V = 0;
+
+	//右下点
+	input->vertexList[2].vertex.x = 100.0f;
+	input->vertexList[2].vertex.y = 0.0f;
+	input->vertexList[2].vertex.z = 0.0f;
+	input->vertexList[2].U = 512;
+	input->vertexList[2].V = 512;
+
+	input->vertexListIndex[0] = 0;
+	input->vertexListIndex[1] = 1;
+	input->vertexListIndex[2] = 2;
+
+	input->vertexListIndex[3] = -1;
+}
+
 void DeleteModel(MODEL *input)
 {
 	free(input->vertexList);
@@ -198,10 +232,15 @@ void DeleteModel(MODEL *input)
 	input->indexNumber = 0;
 }
 
-void InitObject(OBJECT *object, float x, float y, float z, float i, float j, float k)
+void InitObject(OBJECT *object, float x, float y, float z, float i, float j, float k,int tmp)
 {
 	//InitModelWithCube22(&object->model);
-	InitModelWithSingleTriangle(&object->model);
+	if (tmp) {
+		InitModelWithSingleTriangle01(&object->model);
+	} 
+	else {
+		InitModelWithSingleTriangle02(&object->model);
+	}
 
 	object->position.x = x;
 	object->position.y = y;

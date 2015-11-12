@@ -92,4 +92,5 @@ FLOAT3D* SingleObjectLocalToHomo(OBJECT, MATRIX4 WTV, MATRIX4 VTH);
 //对多边形进行背面剔除
 int TriangleBackCull(FLOAT3D p0, FLOAT3D p1, FLOAT3D p2);
 
+
 #endif

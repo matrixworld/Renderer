@@ -332,7 +332,6 @@ FLOAT3D* SingleObjectLocalToHomo(OBJECT object, MATRIX4 WTV, MATRIX4 VTH)
 
 		TmpVertexes[lop].x /= z;
 		TmpVertexes[lop].y /= z;
-		TmpVertexes[lop].z /= z;
 	}
 
 	//»±…ŸCVVºÙ≤√
