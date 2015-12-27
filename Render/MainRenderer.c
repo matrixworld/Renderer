@@ -54,8 +54,7 @@ void RenderFrame(OBJECT *, int);
 //根据点的索引表顺序绘画三角形
 void DrawModelListIndex(FLOAT3D *, int *,MODELVERTEX*);
 
-//填充三角形的几种方法
-//Line Equations
+//填充三角形的几个函数
 void FillTriangleTopFlat(FLOAT3D, int, int, FLOAT3D, int, int, FLOAT3D, int, int);
 void FillTriangleBottomFlat(FLOAT3D, int, int, FLOAT3D, int, int, FLOAT3D, int, int);
 void FillTriangle(FLOAT3D, int, int, FLOAT3D, int, int, FLOAT3D, int, int);
@@ -65,6 +64,8 @@ void HandleDestroy();
 ///////////
 //函数定义//
 //////////
+
+//控制摄像机
 void CameraControl()
 {
 	if (centerCursor)
@@ -111,10 +112,10 @@ void CameraControl()
 	if (screen_keys['Q']) { camera.POS.y += camera.speed; return; }
 	if (screen_keys['E']) { camera.POS.y -= camera.speed; return; }
 }
-
+//渲染一帧
 void RenderFrame(OBJECT* objectList, int ObjectTotalNum)
 {
-	//用画刷填充背景
+	//用背景画刷填充背景
 	FillRect(hdcBuffer, &rectRender, brushBackground);
 	//生成世界到视口矩阵
 	//所有的物体的点都要乘以该矩阵
@@ -135,7 +136,7 @@ void RenderFrame(OBJECT* objectList, int ObjectTotalNum)
 			SingleObjectTmpVertexes[lop2].y =
 				(SingleObjectTmpVertexes[lop2].y + 1.0f) * rectRender.bottom / 2.0f;
 		}
-		//画出点和线
+		//画出三角形
 		DrawModelListIndex(SingleObjectTmpVertexes, objectList[lop].model.vertexListIndex, objectList[lop].model.vertexList);
 
 		free(SingleObjectTmpVertexes);
@@ -143,6 +144,7 @@ void RenderFrame(OBJECT* objectList, int ObjectTotalNum)
 	}
 }
 
+//根据顶点索引渲染具体的三角形
 void DrawModelListIndex(FLOAT3D *vertexList, int *listIndex,MODELVERTEX *modelVertexList)
 {
 	FLOAT3D a, b, c;
@@ -166,19 +168,19 @@ void DrawModelListIndex(FLOAT3D *vertexList, int *listIndex,MODELVERTEX *modelVe
 		b.z = vertexList[listIndex[index + 1]].z;
 		c.z = vertexList[listIndex[index + 2]].z;
 
+		//背面消隐
 		if (TriangleBackCull(a, b, c))
 		{
 			continue;
 		}
 
-		//TODO
 		FillTriangle(a, modelVertexList[listIndex[index]].U, modelVertexList[listIndex[index]].V,
 			b, modelVertexList[listIndex[index + 1]].U, modelVertexList[listIndex[index + 1]].V,
 			c, modelVertexList[listIndex[index + 2]].U, modelVertexList[listIndex[index + 2]].V);
 	}
 }
 
-//Texture Mapping
+//插值渲染顶部为水平线的三角形（下三角形）
 void FillTriangleTopFlat(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb, FLOAT3D c, int Uc, int Vc)
 {
 	float x1 = a.x;
@@ -189,22 +191,18 @@ void FillTriangleTopFlat(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb, F
 	float y2 = b.y;
 	float y3 = c.y;
 
-	int minx = (int)Min3(x1, x2, x3);
-	int miny = (int)Min3(y1, y2, y3);
-	int maxx = (int)Max3(x1, x2, x3);
-	int maxy = (int)Max3(y1, y2, y3);
+	//确定三角形的范围
+	int miny = (int)y3;
+	int maxy = (int)y1;
 
-	//用于直接从载入的纹理采样的UV坐标
-	float u, v;
-	//左右两点的UV坐标
-	//float uLeft, uRight, vLeft, vRight;
-	//UV变化量
-	//float uStep, vStep;
-	//左右两点的 x 范围
+	//最终算出的UV坐标
+	//范围 [0, 512]
+	int u, v;
+	//x轴左右两点
 	float xLeft, xRight;
 
 
-	//透视正确的插值
+	//透视正确的插值计算
 	float oneoverz_Left, oneoverz_Right;
 	float oneoverz_Top, oneoverz_Bottom;
 	float oneoverz, oneoverz_Step;
@@ -218,63 +216,42 @@ void FillTriangleTopFlat(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb, F
 	float voverz, voverz_Step;
 
 
-	//速度优化
-	float x12 = x1 - x2;
-	float y12 = y1 - y2;
-	float x23 = x2 - x3;
-	float y23 = y2 - y3;
-	float x31 = x3 - x1;
-	float y31 = y3 - y1;
-
-	//y - a.y
-	float t_YsubAY;
-	//(y - a.y) / (c.y - a.y)
+	//(y - y1) / (y3 - y1)
 	float t_YAYCYAY;
-	//(y - a.y) / (b.y - a.y)
-	float t_YAYBYAY;
+	// (y - y2) / (y3 - y2)
+	float t_YBYCYBY;
 
 	//双重循环
 	for (int y = miny; y <= maxy; y++)
 	{
-		//t_YsubAY = y - y1;
-		//t_YAYCYAY = t_YsubAY / (y3 - y1);
-		//t_YAYBYAY = t_YsubAY / (y2 - y1);
+		//将多次用到的数据先算出来
+		t_YAYCYAY = (y - y1) / (y3 - y1);
+		t_YBYCYBY = (y - y2) / (y3 - y2);
 
-		xLeft = (y - y1) / (y3 - y1) * (x3 - x1) + x1;
-		xRight = (y - y2) / (y3 - y2) * (x3 - x2) + x2;
-
-		/*
-		uLeft = t_YAYCYAY * (Uc - Ua) + Ua;
-		uRight = t_YAYBYAY * (Ub - Ua) + Ua;
-
-		vLeft = t_YAYCYAY * (Vc - Va) + Va;
-		vRight = t_YAYBYAY * (Vb - Va) + Va;
-
-		uStep = (uRight - uLeft) / (xRight - xLeft);
-		vStep = (vRight - vLeft) / (xRight - xLeft);
-		*/
+		xLeft = t_YAYCYAY * (x3 - x1) + x1;
+		xRight = t_YBYCYBY* (x3 - x2) + x2;
 
 		//透视正确的插值 值的计算
 		//1 / z
 		oneoverz_Top = 1 / a.z;
 		oneoverz_Bottom = 1 / c.z;
-		oneoverz_Left = (y - y1) / (y3 - y1) * (oneoverz_Bottom - oneoverz_Top) + oneoverz_Top;
+		oneoverz_Left = t_YAYCYAY* (oneoverz_Bottom - oneoverz_Top) + oneoverz_Top;
 		oneoverz_Top = 1 / b.z;
-		oneoverz_Right = (y - y2) / (y3 - y2) * (oneoverz_Bottom - oneoverz_Top) + oneoverz_Top;
+		oneoverz_Right = t_YBYCYBY * (oneoverz_Bottom - oneoverz_Top) + oneoverz_Top;
 		oneoverz_Step = (oneoverz_Right - oneoverz_Left) / (xRight - xLeft);
 		//U / z
 		uoverz_Top = Ua / a.z;
 		uoverz_Bottom = Uc / c.z;
-		uoverz_Left = (y - y1) / (y3 - y1) * (uoverz_Bottom - uoverz_Top) + uoverz_Top;
+		uoverz_Left = t_YAYCYAY* (uoverz_Bottom - uoverz_Top) + uoverz_Top;
 		uoverz_Top = Ub / b.z;
-		uoverz_Right = (y - y2) / (y3 - y2) * (uoverz_Bottom - uoverz_Top) + uoverz_Top;
+		uoverz_Right = t_YBYCYBY* (uoverz_Bottom - uoverz_Top) + uoverz_Top;
 		uoverz_Step = (uoverz_Right - uoverz_Left) / (xRight - xLeft);
 		//V / z
 		voverz_Top = Va / a.z;
 		voverz_Bottom = Vc / c.z;
-		voverz_Left = (y - y1) / (y3 - y1) * (voverz_Bottom - voverz_Top) + voverz_Top;
+		voverz_Left = t_YAYCYAY * (voverz_Bottom - voverz_Top) + voverz_Top;
 		voverz_Top = Vb / b.z;
-		voverz_Right = (y - y2) / (y3 - y2) * (voverz_Bottom - voverz_Top) + voverz_Top;
+		voverz_Right = t_YBYCYBY* (voverz_Bottom - voverz_Top) + voverz_Top;
 		voverz_Step = (voverz_Right - voverz_Left) / (xRight - xLeft);
 
 
@@ -283,17 +260,14 @@ void FillTriangleTopFlat(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb, F
 		x <= xRight;
 			x++, oneoverz += oneoverz_Step, uoverz += uoverz_Step, voverz += voverz_Step)
 		{
-			if (x12*(y - y1) - y12*(x - x1) > 0 &&
-				x23*(y - y2) - y23*(x - x2) > 0 &&
-				x31*(y - y3) - y31*(x - x3) > 0)
-			{
-				u = uoverz / oneoverz;
-				v = voverz / oneoverz;
-				SetPixel(hdcBuffer, x, rectRender.bottom - y, GetPixel(hdcTexture, (int)u, (int)v));
-			}
+			u = (int)(uoverz / oneoverz);
+			v = (int)(voverz / oneoverz);
+			SetPixel(hdcBuffer, x, rectRender.bottom - y, GetPixel(hdcTexture, u, v));
 		}
 	}
 }
+
+//插值渲染底部为水平线的三角形（上三角形）
 void FillTriangleBottomFlat(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb, FLOAT3D c, int Uc, int Vc)
 {
 	float x1 = a.x;
@@ -304,20 +278,14 @@ void FillTriangleBottomFlat(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb
 	float y2 = b.y;
 	float y3 = c.y;
 
-	int minx = (int)Min3(x1, x2, x3);
-	int miny = (int)Min3(y1, y2, y3);
-	int maxx = (int)Max3(x1, x2, x3);
-	int maxy = (int)Max3(y1, y2, y3);
+	//确定三角形的范围
+	int miny = (int)y2;
+	int maxy = (int)y1;
 
 	//用于直接从载入的纹理采样的UV坐标
-	float u, v;
-	//左右两点的UV坐标
-	//float uLeft, uRight, vLeft, vRight;
-	//UV变化量
-	//float uStep, vStep;
+	int u, v;
 	//左右两点的 x 范围
 	float xLeft, xRight;
-
 
 	//透视正确的插值
 	float oneoverz_Left, oneoverz_Right;
@@ -332,42 +300,22 @@ void FillTriangleBottomFlat(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb
 	float uoverz, uoverz_Step;
 	float voverz, voverz_Step;
 
-
-	//速度优化
-	float x12 = x1 - x2;
-	float y12 = y1 - y2;
-	float x23 = x2 - x3;
-	float y23 = y2 - y3;
-	float x31 = x3 - x1;
-	float y31 = y3 - y1;
-
-	//y - a.y
-	float t_YsubAY;
 	//(y - a.y) / (c.y - a.y)
 	float t_YAYCYAY;
 	//(y - a.y) / (b.y - a.y)
 	float t_YAYBYAY;
 
 	//双重循环
+	//一行一行的渲染
 	for (int y = miny; y <= maxy; y++)
 	{
-		t_YsubAY = y - y1;
-		t_YAYCYAY = t_YsubAY / (y3 - y1);
-		t_YAYBYAY = t_YsubAY / (y2 - y1);
+		//将多次用到的数据先算出来
+		t_YAYCYAY = (y - y1) / (y3 - y1);
+		t_YAYBYAY = (y - y1) / (y2 - y1);
 
+		//当前行的左右端点
 		xLeft = t_YAYCYAY * (x3 - x1) + x1;
 		xRight = t_YAYBYAY * (x2 - x1) + x1;
-
-		/*
-		uLeft = t_YAYCYAY * (Uc - Ua) + Ua;
-		uRight = t_YAYBYAY * (Ub - Ua) + Ua;
-
-		vLeft = t_YAYCYAY * (Vc - Va) + Va;
-		vRight = t_YAYBYAY * (Vb - Va) + Va;
-
-		uStep = (uRight - uLeft) / (xRight - xLeft);
-		vStep = (vRight - vLeft) / (xRight - xLeft);
-		*/
 
 		//透视正确的插值 值的计算
 		//1 / z
@@ -395,25 +343,24 @@ void FillTriangleBottomFlat(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb
 
 		int x = 0;
 		for (x = (int)xLeft, oneoverz = oneoverz_Left, uoverz = uoverz_Left, voverz = voverz_Left;
-			x <= xRight;
-			x++,oneoverz += oneoverz_Step, uoverz += uoverz_Step, voverz += voverz_Step)
+		x <= xRight;
+			x++, oneoverz += oneoverz_Step, uoverz += uoverz_Step, voverz += voverz_Step)
 		{
-			if (x12*(y - y1) - y12*(x - x1) > 0 &&
-				x23*(y - y2) - y23*(x - x2) > 0 &&
-				x31*(y - y3) - y31*(x - x3) > 0)
-			{
-				u = uoverz / oneoverz;
-				v = voverz / oneoverz;
-				SetPixel(hdcBuffer, x, rectRender.bottom - y, GetPixel(hdcTexture, (int)u, (int)v));
-			}
+			u = (int)(uoverz / oneoverz);
+			v = (int)(voverz / oneoverz);
+			SetPixel(hdcBuffer, x, rectRender.bottom - y, GetPixel(hdcTexture, u, v));
 		}
 	}
 }
 
+//将传入的三角形分割为上三角和下三角
+//方便渲染
 void FillTriangle(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb, FLOAT3D c, int Uc, int Vc)
 {
 	FLOAT3D tmpPoint;
 	int tmpU, tmpV;
+	//将三角形三点按照从上到下ABC的顺序重新排列
+	//A在最上面
 	if (a.y > b.y && a.y > c.y) {
 		if (b.y < c.y) {
 			tmpPoint = b; tmpU = Ub; tmpV = Vb;
@@ -433,7 +380,7 @@ void FillTriangle(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb, FLOAT3D 
 			c = tmpPoint; Uc = tmpU; Vc = tmpV;
 		}
 	}
-	else if(c.y > a.y && c.y > b.y){
+	else if (c.y > a.y && c.y > b.y) {
 		//C 最上面
 		//A C 互换
 		tmpPoint = c; tmpU = Uc; tmpV = Vc;
@@ -446,15 +393,34 @@ void FillTriangle(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb, FLOAT3D 
 		}
 	}
 
-	if (b.y == a.y) {
+	//如果已经是平底的三角形
+	if (ABS(b.y - a.y) < 0.001) {
 		FillTriangleTopFlat(a, Ua, Va, b, Ub, Vb, c, Uc, Vc);
 		return;
 	}
-	if (b.y == c.y) {
+	if (ABS(b.y - c.y) < 0.001) {
 		FillTriangleBottomFlat(a, Ua, Va, b, Ub, Vb, c, Uc, Vc);
 		return;
 	}
 
+	//TODO-BUG
+	//感觉BUG还是在这
+	//给了错误的UV坐标
+
+	//将三角形分为上下三角形
+
+	/*
+	     A
+	    /|
+	  /  |
+	/    |
+  B---D    <==新分割的D点将三角形分为上下三角形
+    \    |
+      \  |
+	    C
+	*/
+
+	//新分割的D点
 	FLOAT3D d;
 	int Ud, Vd;
 
@@ -462,13 +428,14 @@ void FillTriangle(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb, FLOAT3D 
 	d.x = t_BYAYCYAY * (c.x - a.x) + a.x;
 	d.y = b.y;
 	d.z = t_BYAYCYAY * (c.z - a.z) + a.z;
-	
+
 	float oneoverz = t_BYAYCYAY * (1 / c.z - 1 / a.z) + 1 / a.z;
 	float uvoverz = t_BYAYCYAY * (Uc / c.z - Ua / a.z) + Ua / a.z;
 	Ud = (int)(uvoverz / oneoverz);
 	uvoverz = t_BYAYCYAY * (Vc / c.z - Va / a.z) + Va / a.z;
 	Vd = (int)(uvoverz / oneoverz);
 
+	//如果新隔出来的D点在B点左边
 	if (d.x < b.x)
 	{
 		FillTriangleBottomFlat(a, Ua, Va, b, Ub, Vb, d, Ud, Vd);
@@ -480,6 +447,7 @@ void FillTriangle(FLOAT3D a, int Ua, int Va, FLOAT3D b, int Ub, int Vb, FLOAT3D 
 	}
 }
 
+//销毁
 void HandleDestroy()
 {
 	DeleteDC(hdcBuffer);

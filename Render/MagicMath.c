@@ -284,6 +284,7 @@ MATRIX4 GetWorldToViewMatrix4(CAMERA camera)
 	return InvertMatrix4(MatrixMul4(Rotation(camera.rotation), Transition(camera.POS)));
 }
 
+//转换到齐次剪裁空间的矩阵
 MATRIX4 GetViewToHomoMatrix4(CAMERA camera)
 {
 	MATRIX4 hMatrix4;
